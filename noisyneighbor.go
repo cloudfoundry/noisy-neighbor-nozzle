@@ -1,8 +1,12 @@
 package noisyneighbor
 
 import (
+	"crypto/tls"
+	"log"
+
 	"code.cloudfoundry.org/noisyneighbor/cache"
 	"code.cloudfoundry.org/noisyneighbor/web"
+	"github.com/cloudfoundry/noaa/consumer"
 )
 
 // NoisyNeighbor is the top level data structure for the NoisyNeighbor
@@ -16,6 +20,20 @@ type NoisyNeighbor struct {
 
 // New returns an initialized NoisyNeighbor.
 func New(cfg Config) *NoisyNeighbor {
+	cnsmr := consumer.New(
+		cfg.LoggregatorAddr,
+		&tls.Config{InsecureSkipVerify: true}, // TODO: This should be configurable
+		nil,
+	)
+
+	// TODO: Fetch auth token from UAA
+	msgs, errs := cnsmr.FilteredFirehose(cfg.SubscriptionID, "", consumer.LogMessages)
+	go func() {
+		for err := range errs {
+			log.Printf("error received from firehose: %s", err)
+		}
+	}()
+
 	b := NewBuffer(cfg.BufferSize)
 	c := cache.New()
 	s := web.NewServer(
@@ -28,7 +46,7 @@ func New(cfg Config) *NoisyNeighbor {
 	return &NoisyNeighbor{
 		cfg:       cfg,
 		server:    s,
-		ingestor:  NewIngestor(nil, b.Set),
+		ingestor:  NewIngestor(msgs, b.Set),
 		processor: NewProcessor(b.Next, c.Inc),
 	}
 }

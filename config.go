@@ -19,7 +19,8 @@ type Config struct {
 	ClientSecret    string `env:"CLIENT_SECRET,    required, noreport"`
 	LoggregatorAddr string `env:"LOGGREGATOR_ADDR, required"`
 	Port            uint16 `env:"PORT,             required"`
-	BufferSize      int    `env:"BUFFER_SIZE,      required"`
+	SubscriptionID  string `env:"SUBSCRIPTION_ID,  required"`
+	BufferSize      int    `env:"BUFFER_SIZE"`
 	BasicAuthCreds  BasicAuthCreds
 }
 

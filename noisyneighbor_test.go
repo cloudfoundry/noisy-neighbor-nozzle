@@ -32,25 +32,27 @@ var _ = Describe("Noisyneighbor", func() {
 		go nn.Run()
 		defer nn.Stop()
 
-		req, err := http.NewRequest(
-			http.MethodGet,
-			fmt.Sprintf("http://%s/offenders", nn.Addr()),
-			nil,
-		)
-		req.SetBasicAuth(
-			cfg.BasicAuthCreds.Username,
-			cfg.BasicAuthCreds.Password,
-		)
+		Eventually(func() string {
+			req, err := http.NewRequest(
+				http.MethodGet,
+				fmt.Sprintf("http://%s/offenders", nn.Addr()),
+				nil,
+			)
+			req.SetBasicAuth(
+				cfg.BasicAuthCreds.Username,
+				cfg.BasicAuthCreds.Password,
+			)
 
-		resp, err := http.DefaultClient.Do(req)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
-		defer resp.Body.Close()
+			resp, err := http.DefaultClient.Do(req)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			defer resp.Body.Close()
 
-		body, err := ioutil.ReadAll(resp.Body)
-		Expect(err).ToNot(HaveOccurred())
+			body, err := ioutil.ReadAll(resp.Body)
+			Expect(err).ToNot(HaveOccurred())
 
-		Expect(body).To(MatchJSON(`[
+			return string(body)
+		}).Should(MatchJSON(`[
 			{"id": "app-id-1", "count": 3},
 			{"id": "app-id-3", "count": 2},
 			{"id": "app-id-2", "count": 1}
@@ -66,33 +68,69 @@ var (
 	}
 	testEnvelopes = []*events.Envelope{
 		{
+			Timestamp: proto.Int64(1234),
+			Origin:    proto.String("origin"),
+			EventType: events.Envelope_LogMessage.Enum(),
 			LogMessage: &events.LogMessage{
-				AppId: proto.String("app-id-1"),
+				Timestamp:   proto.Int64(1234),
+				AppId:       proto.String("app-id-1"),
+				Message:     []byte(""),
+				MessageType: events.LogMessage_OUT.Enum(),
 			},
 		},
 		{
+			Timestamp: proto.Int64(1234),
+			Origin:    proto.String("origin"),
+			EventType: events.Envelope_LogMessage.Enum(),
 			LogMessage: &events.LogMessage{
-				AppId: proto.String("app-id-2"),
+				Timestamp:   proto.Int64(1234),
+				AppId:       proto.String("app-id-2"),
+				Message:     []byte(""),
+				MessageType: events.LogMessage_OUT.Enum(),
 			},
 		},
 		{
+			Timestamp: proto.Int64(1234),
+			Origin:    proto.String("origin"),
+			EventType: events.Envelope_LogMessage.Enum(),
 			LogMessage: &events.LogMessage{
-				AppId: proto.String("app-id-1"),
+				Timestamp:   proto.Int64(1234),
+				AppId:       proto.String("app-id-1"),
+				Message:     []byte(""),
+				MessageType: events.LogMessage_OUT.Enum(),
 			},
 		},
 		{
+			Timestamp: proto.Int64(1234),
+			Origin:    proto.String("origin"),
+			EventType: events.Envelope_LogMessage.Enum(),
 			LogMessage: &events.LogMessage{
-				AppId: proto.String("app-id-3"),
+				Timestamp:   proto.Int64(1234),
+				AppId:       proto.String("app-id-3"),
+				Message:     []byte(""),
+				MessageType: events.LogMessage_OUT.Enum(),
 			},
 		},
 		{
+			Timestamp: proto.Int64(1234),
+			Origin:    proto.String("origin"),
+			EventType: events.Envelope_LogMessage.Enum(),
 			LogMessage: &events.LogMessage{
-				AppId: proto.String("app-id-1"),
+				Timestamp:   proto.Int64(1234),
+				AppId:       proto.String("app-id-1"),
+				Message:     []byte(""),
+				MessageType: events.LogMessage_OUT.Enum(),
 			},
 		},
 		{
+			Timestamp: proto.Int64(1234),
+			Origin:    proto.String("origin"),
+			EventType: events.Envelope_LogMessage.Enum(),
 			LogMessage: &events.LogMessage{
-				AppId: proto.String("app-id-3"),
+				Timestamp:   proto.Int64(1234),
+				AppId:       proto.String("app-id-3"),
+				Message:     []byte(""),
+				MessageType: events.LogMessage_OUT.Enum(),
 			},
 		},
 	}
