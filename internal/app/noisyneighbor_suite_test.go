@@ -1,4 +1,4 @@
-package noisyneighbor_test
+package app_test
 
 import (
 	"log"

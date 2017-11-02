@@ -1,4 +1,4 @@
-package noisyneighbor
+package app
 
 import (
 	"log"

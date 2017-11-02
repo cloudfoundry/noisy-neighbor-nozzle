@@ -1,4 +1,4 @@
-package noisyneighbor_test
+package app_test
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"code.cloudfoundry.org/noisyneighbor"
+	"code.cloudfoundry.org/noisyneighbor/internal/app"
 	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
@@ -19,15 +19,15 @@ import (
 var _ = Describe("Noisyneighbor", func() {
 	It("serves an HTTP endpoint with the noisiest applications", func() {
 		loggregator := newFakeLoggregator(testEnvelopes)
-		cfg := noisyneighbor.Config{
+		cfg := app.Config{
 			LoggregatorAddr: strings.Replace(loggregator.server.URL, "http", "ws", -1),
 			BufferSize:      1000,
-			BasicAuthCreds: noisyneighbor.BasicAuthCreds{
+			BasicAuthCreds: app.BasicAuthCreds{
 				Username: "username",
 				Password: "password",
 			},
 		}
-		nn := noisyneighbor.New(cfg)
+		nn := app.New(cfg)
 
 		go nn.Run()
 		defer nn.Stop()

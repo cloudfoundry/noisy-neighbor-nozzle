@@ -1,10 +1,10 @@
-package noisyneighbor_test
+package app_test
 
 import (
-	"code.cloudfoundry.org/noisyneighbor"
-
+	"code.cloudfoundry.org/noisyneighbor/internal/app"
 	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/gogo/protobuf/proto"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -20,7 +20,7 @@ var _ = Describe("Processor", func() {
 			incIDs <- id
 		}
 
-		p := noisyneighbor.NewProcessor(next, inc)
+		p := app.NewProcessor(next, inc)
 		go p.Run()
 
 		Eventually(incIDs).Should(Receive(Equal("app-id")))
@@ -36,7 +36,7 @@ var _ = Describe("Processor", func() {
 			incIDs <- id
 		}
 
-		p := noisyneighbor.NewProcessor(next, inc)
+		p := app.NewProcessor(next, inc)
 		go p.Run()
 
 		Consistently(incIDs).ShouldNot(Receive())

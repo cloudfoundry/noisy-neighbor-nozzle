@@ -1,4 +1,4 @@
-package noisyneighbor
+package app
 
 import "github.com/cloudfoundry/sonde-go/events"
 

@@ -1,7 +1,7 @@
 package cache_test
 
 import (
-	"code.cloudfoundry.org/noisyneighbor/cache"
+	"code.cloudfoundry.org/noisyneighbor/internal/cache"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

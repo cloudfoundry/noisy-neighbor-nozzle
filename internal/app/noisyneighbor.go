@@ -1,11 +1,11 @@
-package noisyneighbor
+package app
 
 import (
 	"crypto/tls"
 	"log"
 
-	"code.cloudfoundry.org/noisyneighbor/cache"
-	"code.cloudfoundry.org/noisyneighbor/web"
+	"code.cloudfoundry.org/noisyneighbor/internal/cache"
+	"code.cloudfoundry.org/noisyneighbor/internal/web"
 	"github.com/cloudfoundry/noaa/consumer"
 )
 

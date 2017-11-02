@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"code.cloudfoundry.org/noisyneighbor/cache"
-	"code.cloudfoundry.org/noisyneighbor/web"
+	"code.cloudfoundry.org/noisyneighbor/internal/cache"
+	"code.cloudfoundry.org/noisyneighbor/internal/web"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -61,6 +61,41 @@ var _ = Describe("Server", func() {
 				{"id": "id-4", "count": 1234},	
 				{"id": "id-5", "count": 123}
 			]`))
+		})
+
+		It("accepts the number of entries to return", func() {
+			topN := make(chan int, 100)
+			fakeCacheTopN := func(n int) []cache.Stat {
+				topN <- n
+				return []cache.Stat{}
+			}
+
+			server := web.NewServer(0, "username", "password", fakeCacheTopN)
+			go server.Serve()
+			defer server.Stop()
+
+			var resp *http.Response
+			Eventually(func() error {
+				req, err := http.NewRequest(
+					http.MethodGet,
+					fmt.Sprintf("http://%s/offenders?count=25", server.Addr()),
+					nil,
+				)
+				Expect(err).ToNot(HaveOccurred())
+
+				req.SetBasicAuth("username", "password")
+
+				resp, err = http.DefaultClient.Do(req)
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}).Should(Succeed())
+			defer resp.Body.Close()
+
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			Expect(topN).To(Receive(Equal(25)))
 		})
 	})
 
