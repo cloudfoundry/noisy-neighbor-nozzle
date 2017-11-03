@@ -2,6 +2,7 @@ package app
 
 import (
 	"log"
+	"time"
 
 	envstruct "code.cloudfoundry.org/go-envstruct"
 )
@@ -15,19 +16,21 @@ type BasicAuthCreds struct {
 
 // Config stores configuration data for the noisy neighbor client.
 type Config struct {
-	ClientID        string `env:"CLIENT_ID,        required"`
-	ClientSecret    string `env:"CLIENT_SECRET,    required, noreport"`
-	LoggregatorAddr string `env:"LOGGREGATOR_ADDR, required"`
-	Port            uint16 `env:"PORT,             required"`
-	SubscriptionID  string `env:"SUBSCRIPTION_ID,  required"`
-	BufferSize      int    `env:"BUFFER_SIZE"`
+	ClientID        string        `env:"CLIENT_ID,        required"`
+	ClientSecret    string        `env:"CLIENT_SECRET,    required, noreport"`
+	LoggregatorAddr string        `env:"LOGGREGATOR_ADDR, required"`
+	Port            uint16        `env:"PORT,             required"`
+	SubscriptionID  string        `env:"SUBSCRIPTION_ID,  required"`
+	BufferSize      int           `env:"BUFFER_SIZE"`
+	PollingInterval time.Duration `env:"POLLING_INTERVAL"`
 	BasicAuthCreds  BasicAuthCreds
 }
 
 // LoadConfig loads the Config from the environment
 func LoadConfig() Config {
 	cfg := Config{
-		BufferSize: 10000,
+		BufferSize:      10000,
+		PollingInterval: time.Minute,
 	}
 
 	if err := envstruct.Load(&cfg); err != nil {

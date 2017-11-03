@@ -8,12 +8,11 @@ import (
 	"net/http"
 	"time"
 
-	"code.cloudfoundry.org/noisyneighbor/internal/cache"
 	"github.com/gorilla/mux"
 )
 
-// TopN is a getter func for getting stats for the top log emitters.
-type TopN func(int) []cache.Stat
+// State is a getter func for getting the current state from the store.Aggregator
+type State func() map[int64]map[string]uint64
 
 // Server handles setting up an HTTP server and servicing HTTP requests.
 type Server struct {
@@ -22,7 +21,7 @@ type Server struct {
 }
 
 // NewServer opens a TCP listener and returns an initialized Server.
-func NewServer(port uint16, username, password string, tn TopN) *Server {
+func NewServer(port uint16, username, password string, st State) *Server {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to start listener: %d", port)
@@ -34,7 +33,7 @@ func NewServer(port uint16, username, password string, tn TopN) *Server {
 
 	authMiddleware := BasicAuthMiddleware(username, password)
 
-	router.Handle("/offenders", authMiddleware(OffendersIndex(tn))).
+	router.Handle("/offenders", authMiddleware(OffendersIndex(st))).
 		Methods(http.MethodGet)
 
 	return &Server{

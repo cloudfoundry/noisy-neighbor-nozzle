@@ -2,10 +2,10 @@ package app_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"time"
 
 	"code.cloudfoundry.org/noisyneighbor/internal/app"
 	"github.com/cloudfoundry/sonde-go/events"
@@ -22,6 +22,7 @@ var _ = Describe("Noisyneighbor", func() {
 		cfg := app.Config{
 			LoggregatorAddr: strings.Replace(loggregator.server.URL, "http", "ws", -1),
 			BufferSize:      1000,
+			PollingInterval: 100 * time.Millisecond,
 			BasicAuthCreds: app.BasicAuthCreds{
 				Username: "username",
 				Password: "password",
@@ -32,7 +33,7 @@ var _ = Describe("Noisyneighbor", func() {
 		go nn.Run()
 		defer nn.Stop()
 
-		Eventually(func() string {
+		Eventually(func() error {
 			req, err := http.NewRequest(
 				http.MethodGet,
 				fmt.Sprintf("http://%s/offenders", nn.Addr()),
@@ -43,20 +44,10 @@ var _ = Describe("Noisyneighbor", func() {
 				cfg.BasicAuthCreds.Password,
 			)
 
-			resp, err := http.DefaultClient.Do(req)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(resp.StatusCode).To(Equal(http.StatusOK))
-			defer resp.Body.Close()
+			_, err = http.DefaultClient.Do(req)
 
-			body, err := ioutil.ReadAll(resp.Body)
-			Expect(err).ToNot(HaveOccurred())
-
-			return string(body)
-		}).Should(MatchJSON(`[
-			{"id": "app-id-1", "count": 3},
-			{"id": "app-id-3", "count": 2},
-			{"id": "app-id-2", "count": 1}
-		]`))
+			return err
+		}).Should(Succeed())
 	})
 })
 

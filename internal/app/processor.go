@@ -8,7 +8,7 @@ type Next func() *events.Envelope
 // Inc is a func that updates a counter for a given ID
 type Inc func(string)
 
-// Processor will read data from the Diode and update values in the Cache
+// Processor will read data from the Diode and update values in the store
 type Processor struct {
 	next Next
 	inc  Inc

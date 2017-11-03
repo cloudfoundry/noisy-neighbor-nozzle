@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"log"
 
-	"code.cloudfoundry.org/noisyneighbor/internal/cache"
+	"code.cloudfoundry.org/noisyneighbor/internal/store"
 	"code.cloudfoundry.org/noisyneighbor/internal/web"
 	"github.com/cloudfoundry/noaa/consumer"
 )
@@ -12,13 +12,17 @@ import (
 // NoisyNeighbor is the top level data structure for the NoisyNeighbor
 // application.
 type NoisyNeighbor struct {
-	cfg       Config
-	server    *web.Server
-	ingestor  *Ingestor
-	processor *Processor
+	cfg        Config
+	server     *web.Server
+	ingestor   *Ingestor
+	processor  *Processor
+	aggregator *store.Aggregator
 }
 
-// New returns an initialized NoisyNeighbor.
+// New returns an initialized NoisyNeighbor. This will authenticate with UAA,
+// open a connection to the firehose, and initialize all subprocesses.
+// TODO: Authenticate with UAA.
+// TODO: store/store calculates rates
 func New(cfg Config) *NoisyNeighbor {
 	cnsmr := consumer.New(
 		cfg.LoggregatorAddr,
@@ -35,19 +39,23 @@ func New(cfg Config) *NoisyNeighbor {
 	}()
 
 	b := NewBuffer(cfg.BufferSize)
-	c := cache.New()
+	c := store.NewCounter()
+	a := store.NewAggregator(c,
+		store.WithPollingInterval(cfg.PollingInterval),
+	)
 	s := web.NewServer(
 		cfg.Port,
 		cfg.BasicAuthCreds.Username,
 		cfg.BasicAuthCreds.Password,
-		c.TopN,
+		a.State,
 	)
 
 	return &NoisyNeighbor{
-		cfg:       cfg,
-		server:    s,
-		ingestor:  NewIngestor(msgs, b.Set),
-		processor: NewProcessor(b.Next, c.Inc),
+		cfg:        cfg,
+		server:     s,
+		aggregator: a,
+		ingestor:   NewIngestor(msgs, b.Set),
+		processor:  NewProcessor(b.Next, c.Inc),
 	}
 }
 
@@ -60,6 +68,7 @@ func (nn *NoisyNeighbor) Addr() string {
 func (nn *NoisyNeighbor) Run() {
 	go nn.ingestor.Run()
 	go nn.processor.Run()
+	go nn.aggregator.Run()
 
 	nn.server.Serve()
 }

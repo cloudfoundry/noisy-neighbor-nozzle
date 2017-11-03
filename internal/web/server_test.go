@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"code.cloudfoundry.org/noisyneighbor/internal/cache"
 	"code.cloudfoundry.org/noisyneighbor/internal/web"
 
 	. "github.com/onsi/ginkgo"
@@ -13,19 +12,24 @@ import (
 )
 
 var _ = Describe("Server", func() {
-	Describe("/offenders", func() {
+	Describe("/stats", func() {
 		It("returns a list of top offenders", func() {
-			fakeCacheTopN := func(n int) []cache.Stat {
-				return []cache.Stat{
-					{ID: "id-1", Count: 1234567},
-					{ID: "id-2", Count: 123456},
-					{ID: "id-3", Count: 12345},
-					{ID: "id-4", Count: 1234},
-					{ID: "id-5", Count: 123},
+			fakestoreTopN := func() map[int64]map[string]uint64 {
+				return map[int64]map[string]uint64{
+					1234: {
+						"id-1": uint64(9999),
+						"id-2": uint64(9999),
+						"id-3": uint64(9999),
+					},
+					12345: {
+						"id-1": uint64(9999),
+						"id-2": uint64(9999),
+						"id-3": uint64(9999),
+					},
 				}
 			}
 
-			server := web.NewServer(0, "username", "password", fakeCacheTopN)
+			server := web.NewServer(0, "username", "password", fakestoreTopN)
 			go server.Serve()
 			defer server.Stop()
 
@@ -54,58 +58,28 @@ var _ = Describe("Server", func() {
 			body, err := ioutil.ReadAll(resp.Body)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(body).To(MatchJSON(`[
-				{"id": "id-1", "count": 1234567},	
-				{"id": "id-2", "count": 123456},	
-				{"id": "id-3", "count": 12345},	
-				{"id": "id-4", "count": 1234},	
-				{"id": "id-5", "count": 123}
-			]`))
-		})
-
-		It("accepts the number of entries to return", func() {
-			topN := make(chan int, 100)
-			fakeCacheTopN := func(n int) []cache.Stat {
-				topN <- n
-				return []cache.Stat{}
-			}
-
-			server := web.NewServer(0, "username", "password", fakeCacheTopN)
-			go server.Serve()
-			defer server.Stop()
-
-			var resp *http.Response
-			Eventually(func() error {
-				req, err := http.NewRequest(
-					http.MethodGet,
-					fmt.Sprintf("http://%s/offenders?count=25", server.Addr()),
-					nil,
-				)
-				Expect(err).ToNot(HaveOccurred())
-
-				req.SetBasicAuth("username", "password")
-
-				resp, err = http.DefaultClient.Do(req)
-				if err != nil {
-					return err
+			Expect(body).To(MatchJSON(`{
+				"1234": {
+					"id-1": 9999,
+					"id-2": 9999,
+					"id-3": 9999
+				},
+				"12345": {
+					"id-1": 9999,
+					"id-2": 9999,
+					"id-3": 9999
 				}
-
-				return nil
-			}).Should(Succeed())
-			defer resp.Body.Close()
-
-			Expect(resp.StatusCode).To(Equal(http.StatusOK))
-			Expect(topN).To(Receive(Equal(25)))
+			}`))
 		})
 	})
 
 	Describe("authentication", func() {
 		It("returns a 401 Unauthorized without basic auth credentials", func() {
-			fakeCacheTopN := func(n int) []cache.Stat {
-				return []cache.Stat{}
+			fakestoreTopN := func() map[int64]map[string]uint64 {
+				return make(map[int64]map[string]uint64)
 			}
 
-			server := web.NewServer(0, "username", "password", fakeCacheTopN)
+			server := web.NewServer(0, "username", "password", fakestoreTopN)
 			go server.Serve()
 			defer server.Stop()
 
@@ -124,11 +98,11 @@ var _ = Describe("Server", func() {
 		})
 
 		It("returns a 401 Unauthorized with invalid credentials", func() {
-			fakeCacheTopN := func(n int) []cache.Stat {
-				return []cache.Stat{}
+			fakestoreTopN := func() map[int64]map[string]uint64 {
+				return make(map[int64]map[string]uint64)
 			}
 
-			server := web.NewServer(0, "username", "password", fakeCacheTopN)
+			server := web.NewServer(0, "username", "password", fakestoreTopN)
 			go server.Serve()
 			defer server.Stop()
 
