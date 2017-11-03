@@ -1,6 +1,10 @@
 package app
 
-import "github.com/cloudfoundry/sonde-go/events"
+import (
+	"fmt"
+
+	"github.com/cloudfoundry/sonde-go/events"
+)
 
 // Next is a func that reads an envelope off of a buffer.
 type Next func() *events.Envelope

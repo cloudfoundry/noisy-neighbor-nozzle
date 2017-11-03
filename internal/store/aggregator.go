@@ -1,6 +1,7 @@
 package store
 
 import (
+	"sort"
 	"sync"
 	"time"
 )
@@ -51,19 +52,27 @@ func (a *Aggregator) Run() {
 }
 
 // State returns the current state of the aggregator.
-func (a *Aggregator) State() map[int64]map[string]uint64 {
+func (a *Aggregator) State() Rates {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	state := make(map[int64]map[string]uint64)
+	rates := make([]Rate, 0, len(a.data))
 	for ts, data := range a.data {
-		state[ts] = make(map[string]uint64)
-		for id, count := range data {
-			state[ts][id] = count
+		r := Rate{
+			Timestamp: ts,
+			Counts:    make(map[string]uint64),
 		}
+
+		for id, count := range data {
+			r.Counts[id] = count
+		}
+
+		rates = append(rates, r)
 	}
 
-	return state
+	sort.Sort(Rates(rates))
+
+	return rates
 }
 
 // AggregatorOption are funcs that can be used to configure an Aggregator at

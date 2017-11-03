@@ -8,11 +8,12 @@ import (
 	"net/http"
 	"time"
 
+	"code.cloudfoundry.org/noisyneighbor/internal/store"
 	"github.com/gorilla/mux"
 )
 
-// State is a getter func for getting the current state from the store.Aggregator
-type State func() map[int64]map[string]uint64
+// Rates is a getter func for getting the current state from the store.Aggregator
+type Rates func() store.Rates
 
 // Server handles setting up an HTTP server and servicing HTTP requests.
 type Server struct {
@@ -21,7 +22,7 @@ type Server struct {
 }
 
 // NewServer opens a TCP listener and returns an initialized Server.
-func NewServer(port uint16, username, password string, st State) *Server {
+func NewServer(port uint16, username, password string, r Rates) *Server {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to start listener: %d", port)
@@ -33,7 +34,7 @@ func NewServer(port uint16, username, password string, st State) *Server {
 
 	authMiddleware := BasicAuthMiddleware(username, password)
 
-	router.Handle("/offenders", authMiddleware(OffendersIndex(st))).
+	router.Handle("/offenders", authMiddleware(OffendersIndex(r))).
 		Methods(http.MethodGet)
 
 	return &Server{

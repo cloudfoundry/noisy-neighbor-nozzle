@@ -24,10 +24,13 @@ var _ = Describe("Aggregator", func() {
 
 		go a.Run()
 
-		Eventually(a.State).Should(Equal(map[int64]map[string]uint64{
-			time.Now().Unix(): map[string]uint64{
-				"id-1": uint64(5),
-				"id-2": uint64(5),
+		Eventually(a.State).Should(Equal(store.Rates{
+			{
+				Timestamp: time.Now().Unix(),
+				Counts: map[string]uint64{
+					"id-1": uint64(5),
+					"id-2": uint64(5),
+				},
 			},
 		}))
 	})
