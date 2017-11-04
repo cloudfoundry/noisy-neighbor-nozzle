@@ -84,6 +84,7 @@ func (a *Authenticator) CheckToken(token, scope string) bool {
 		return false
 	}
 
+	// TODO: Need to add Authorization header. Token must have uaa.resource scope.
 	response, err := a.httpClient.PostForm(a.uaaAddr+"/check_token", url.Values{
 		"token":  {token},
 		"scopes": {scope},
