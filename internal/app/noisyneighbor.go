@@ -1,8 +1,8 @@
 package app
 
 import (
-	"crypto/tls"
 	"log"
+	"net/http"
 
 	"code.cloudfoundry.org/noisyneighbor/internal/store"
 	"code.cloudfoundry.org/noisyneighbor/internal/web"
@@ -21,17 +21,25 @@ type NoisyNeighbor struct {
 
 // New returns an initialized NoisyNeighbor. This will authenticate with UAA,
 // open a connection to the firehose, and initialize all subprocesses.
-// TODO: Authenticate with UAA.
-// TODO: store/store calculates rates
 func New(cfg Config) *NoisyNeighbor {
-	cnsmr := consumer.New(
-		cfg.LoggregatorAddr,
-		&tls.Config{InsecureSkipVerify: true}, // TODO: This should be configurable
-		nil,
+	auth := NewAuthenticator(cfg.ClientID, cfg.ClientSecret, cfg.UAAAddr,
+		WithHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: cfg.TLSConfig,
+			},
+		}),
 	)
+	token, err := auth.Token()
+	if err != nil {
+		log.Fatalf("failed to authenticate: %s", err)
+	}
 
-	// TODO: Fetch auth token from UAA
-	msgs, errs := cnsmr.FilteredFirehose(cfg.SubscriptionID, "", consumer.LogMessages)
+	cnsmr := consumer.New(cfg.LoggregatorAddr, cfg.TLSConfig, nil)
+	msgs, errs := cnsmr.FilteredFirehose(
+		cfg.SubscriptionID,
+		token,
+		consumer.LogMessages,
+	)
 	go func() {
 		for err := range errs {
 			log.Printf("error received from firehose: %s", err)
