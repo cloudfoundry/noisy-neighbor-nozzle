@@ -24,7 +24,7 @@ var _ = Describe("AdminAuthorizer", func() {
 		recorder := httptest.NewRecorder()
 		handler := web.AdminAuthMiddleware(checkToken)(stub)
 		req := httptest.NewRequest("GET", "/", nil)
-		req.Header.Add("AUTHORIZATION", "valid-token")
+		req.Header.Add("Authorization", "valid-token")
 
 		handler.ServeHTTP(recorder, req)
 
@@ -45,7 +45,7 @@ var _ = Describe("AdminAuthorizer", func() {
 		recorder := httptest.NewRecorder()
 		handler := web.AdminAuthMiddleware(checkToken)(stub)
 		req := httptest.NewRequest("GET", "/", nil)
-		req.Header.Add("AUTHORIZATION", "invalid-token")
+		req.Header.Add("Authorization", "invalid-token")
 
 		handler.ServeHTTP(recorder, req)
 
