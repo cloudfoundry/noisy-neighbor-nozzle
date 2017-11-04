@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -74,6 +75,30 @@ func (a *Authenticator) Token() (string, error) {
 	}
 
 	return "bearer " + accessToken, nil
+}
+
+// CheckToken validates an auth token with the UAA. It also ensures that the
+// given auth token has permissions to a given scope.
+func (a *Authenticator) CheckToken(token, scope string) bool {
+	if token == "" || scope == "" {
+		return false
+	}
+
+	response, err := a.httpClient.PostForm(a.uaaAddr+"/check_token", url.Values{
+		"token":  {token},
+		"scopes": {scope},
+	})
+	if err != nil {
+		log.Printf("failed to check token: %s", err)
+		return false
+	}
+
+	if response.StatusCode != http.StatusOK {
+		log.Printf("expected 200 status code from /check_token, got %d", response.StatusCode)
+		return false
+	}
+
+	return true
 }
 
 // HTTPClient is an interface that http.Client conforms to.

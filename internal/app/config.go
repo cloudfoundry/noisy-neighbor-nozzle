@@ -8,13 +8,6 @@ import (
 	envstruct "code.cloudfoundry.org/go-envstruct"
 )
 
-// BasicAuthCreds stores configuration for Basic Authentication for the noisey
-// neighbor web UI.
-type BasicAuthCreds struct {
-	Username string `env:"BASIC_AUTH_USERNAME, required"`
-	Password string `env:"BASIC_AUTH_PASSWORD, required, noreport"`
-}
-
 // Config stores configuration data for the noisy neighbor client.
 type Config struct {
 	UAAAddr         string        `env:"UAA_ADDR,         required"`
@@ -26,7 +19,6 @@ type Config struct {
 	SkipCertVerify  bool          `env:"SKIP_CERT_VERIFY"`
 	BufferSize      int           `env:"BUFFER_SIZE"`
 	PollingInterval time.Duration `env:"POLLING_INTERVAL"`
-	BasicAuthCreds  BasicAuthCreds
 	TLSConfig       *tls.Config
 }
 

@@ -28,10 +28,6 @@ var _ = Describe("Noisyneighbor", func() {
 			BufferSize:      1000,
 			PollingInterval: 100 * time.Millisecond,
 			UAAAddr:         uaa.server.URL,
-			BasicAuthCreds: app.BasicAuthCreds{
-				Username: "username",
-				Password: "password",
-			},
 		}
 		nn := app.New(cfg)
 		Expect(uaa.tokenCalled()).To(Equal(int64(1)))
@@ -44,10 +40,6 @@ var _ = Describe("Noisyneighbor", func() {
 				http.MethodGet,
 				fmt.Sprintf("http://%s/offenders", nn.Addr()),
 				nil,
-			)
-			req.SetBasicAuth(
-				cfg.BasicAuthCreds.Username,
-				cfg.BasicAuthCreds.Password,
 			)
 
 			_, err = http.DefaultClient.Do(req)

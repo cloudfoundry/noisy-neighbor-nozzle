@@ -12,6 +12,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// CheckToken is a function that is used by the AdminAuthMiddleware to check
+// a given auth token.
+type CheckToken func(token, scope string) bool
+
 // Rates is a getter func for getting the current state from the store.Aggregator
 type Rates func() store.Rates
 
@@ -22,7 +26,11 @@ type Server struct {
 }
 
 // NewServer opens a TCP listener and returns an initialized Server.
-func NewServer(port uint16, username, password string, r Rates) *Server {
+func NewServer(
+	port uint16,
+	r Rates,
+	ct CheckToken,
+) *Server {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to start listener: %d", port)
@@ -32,7 +40,7 @@ func NewServer(port uint16, username, password string, r Rates) *Server {
 
 	router := mux.NewRouter()
 
-	authMiddleware := BasicAuthMiddleware(username, password)
+	authMiddleware := AdminAuthMiddleware(ct)
 
 	router.Handle("/offenders", authMiddleware(OffendersIndex(r))).
 		Methods(http.MethodGet)

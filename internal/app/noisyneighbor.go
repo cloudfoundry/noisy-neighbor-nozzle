@@ -53,9 +53,8 @@ func New(cfg Config) *NoisyNeighbor {
 	)
 	s := web.NewServer(
 		cfg.Port,
-		cfg.BasicAuthCreds.Username,
-		cfg.BasicAuthCreds.Password,
 		a.State,
+		auth.CheckToken,
 	)
 
 	return &NoisyNeighbor{

@@ -15,6 +15,9 @@ import (
 var _ = Describe("Server", func() {
 	Describe("/stats", func() {
 		It("returns a list of top offenders", func() {
+			checkToken := func(token, scope string) bool {
+				return true
+			}
 			fakeRates := func() store.Rates {
 				return []store.Rate{
 					{
@@ -36,7 +39,7 @@ var _ = Describe("Server", func() {
 				}
 			}
 
-			server := web.NewServer(0, "username", "password", fakeRates)
+			server := web.NewServer(0, fakeRates, checkToken)
 			go server.Serve()
 			defer server.Stop()
 
@@ -48,8 +51,6 @@ var _ = Describe("Server", func() {
 					nil,
 				)
 				Expect(err).ToNot(HaveOccurred())
-
-				req.SetBasicAuth("username", "password")
 
 				resp, err = http.DefaultClient.Do(req)
 				if err != nil {
@@ -87,12 +88,15 @@ var _ = Describe("Server", func() {
 	})
 
 	Describe("authentication", func() {
-		It("returns a 401 Unauthorized without basic auth credentials", func() {
+		It("returns a 401 Unauthorized when authentication fails", func() {
+			checkToken := func(token, scope string) bool {
+				return false
+			}
 			fakeRates := func() store.Rates {
 				return []store.Rate{}
 			}
 
-			server := web.NewServer(0, "username", "password", fakeRates)
+			server := web.NewServer(0, fakeRates, checkToken)
 			go server.Serve()
 			defer server.Stop()
 
@@ -100,37 +104,6 @@ var _ = Describe("Server", func() {
 			Eventually(func() error {
 				var err error
 				resp, err = http.Get(fmt.Sprintf("http://%s/offenders", server.Addr()))
-				if err != nil {
-					return err
-				}
-
-				return nil
-			}).Should(Succeed())
-
-			Expect(resp.StatusCode).To(Equal(http.StatusUnauthorized))
-		})
-
-		It("returns a 401 Unauthorized with invalid credentials", func() {
-			fakeRates := func() store.Rates {
-				return []store.Rate{}
-			}
-
-			server := web.NewServer(0, "username", "password", fakeRates)
-			go server.Serve()
-			defer server.Stop()
-
-			var resp *http.Response
-			Eventually(func() error {
-				req, err := http.NewRequest(
-					http.MethodGet,
-					fmt.Sprintf("http://%s/offenders", server.Addr()),
-					nil,
-				)
-				Expect(err).ToNot(HaveOccurred())
-
-				req.SetBasicAuth("invalid-username", "invalid-password")
-
-				resp, err = http.DefaultClient.Do(req)
 				if err != nil {
 					return err
 				}
