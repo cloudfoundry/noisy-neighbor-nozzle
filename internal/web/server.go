@@ -42,7 +42,7 @@ func NewServer(
 
 	authMiddleware := AdminAuthMiddleware(ct)
 
-	router.Handle("/offenders", authMiddleware(OffendersIndex(r))).
+	router.Handle("/state", authMiddleware(StateIndex(r))).
 		Methods(http.MethodGet)
 
 	return &Server{

@@ -38,7 +38,7 @@ var _ = Describe("Noisyneighbor", func() {
 		Eventually(func() error {
 			req, err := http.NewRequest(
 				http.MethodGet,
-				fmt.Sprintf("http://%s/offenders", nn.Addr()),
+				fmt.Sprintf("http://%s/state", nn.Addr()),
 				nil,
 			)
 

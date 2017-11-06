@@ -47,7 +47,7 @@ var _ = Describe("Server", func() {
 			Eventually(func() error {
 				req, err := http.NewRequest(
 					http.MethodGet,
-					fmt.Sprintf("http://%s/offenders", server.Addr()),
+					fmt.Sprintf("http://%s/state", server.Addr()),
 					nil,
 				)
 				Expect(err).ToNot(HaveOccurred())
@@ -103,7 +103,7 @@ var _ = Describe("Server", func() {
 			var resp *http.Response
 			Eventually(func() error {
 				var err error
-				resp, err = http.Get(fmt.Sprintf("http://%s/offenders", server.Addr()))
+				resp, err = http.Get(fmt.Sprintf("http://%s/state", server.Addr()))
 				if err != nil {
 					return err
 				}

@@ -94,6 +94,9 @@ func (a *Authenticator) CheckToken(token, scope string) bool {
 		a.uaaAddr+"/check_token",
 		strings.NewReader(form.Encode()),
 	)
+	if err != nil {
+		log.Fatalf("failed to build request to UAA: %s", err)
+	}
 	req.SetBasicAuth(a.clientID, a.clientSecret)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
