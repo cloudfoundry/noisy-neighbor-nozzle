@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // Authenticator stores authentication information that can be used to get an
@@ -84,15 +85,24 @@ func (a *Authenticator) CheckToken(token, scope string) bool {
 		return false
 	}
 
-	// TODO: Need to add Authorization header. Token must have uaa.resource scope.
-	response, err := a.httpClient.PostForm(a.uaaAddr+"/check_token", url.Values{
+	form := url.Values{
 		"token":  {token},
 		"scopes": {scope},
-	})
+	}
+	req, err := http.NewRequest(
+		http.MethodPost,
+		a.uaaAddr+"/check_token",
+		strings.NewReader(form.Encode()),
+	)
+	req.SetBasicAuth(a.clientID, a.clientSecret)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err := a.httpClient.Do(req)
 	if err != nil {
 		log.Printf("failed to check token: %s", err)
 		return false
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		log.Printf("expected 200 status code from /check_token, got %d", response.StatusCode)
@@ -105,6 +115,7 @@ func (a *Authenticator) CheckToken(token, scope string) bool {
 // HTTPClient is an interface that http.Client conforms to.
 type HTTPClient interface {
 	PostForm(string, url.Values) (*http.Response, error)
+	Do(*http.Request) (*http.Response, error)
 }
 
 // AuthenticatorOption is a type of function that can be passed into

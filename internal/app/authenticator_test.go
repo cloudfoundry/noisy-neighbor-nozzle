@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -108,6 +109,22 @@ func (s *spyHTTPClient) PostForm(url string, data url.Values) (*http.Response, e
 
 	reader := &spyReadCloser{
 		strings.NewReader(`{"access_token": "my-token"}`),
+	}
+
+	return &http.Response{StatusCode: s.statusCode, Body: reader}, nil
+}
+
+func (s *spyHTTPClient) Do(r *http.Request) (*http.Response, error) {
+	body, err := ioutil.ReadAll(r.Body)
+	Expect(err).ToNot(HaveOccurred())
+	defer r.Body.Close()
+
+	s.url = r.URL.String()
+	s.body, err = url.ParseQuery(string(body))
+	Expect(err).ToNot(HaveOccurred())
+
+	reader := &spyReadCloser{
+		strings.NewReader(`{}`),
 	}
 
 	return &http.Response{StatusCode: s.statusCode, Body: reader}, nil
