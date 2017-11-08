@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"code.cloudfoundry.org/noisyneighbor/internal/app"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/app"
 	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"

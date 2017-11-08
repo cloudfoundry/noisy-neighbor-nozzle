@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"code.cloudfoundry.org/noisyneighbor/internal/store"
-	"code.cloudfoundry.org/noisyneighbor/internal/web"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/store"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/web"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

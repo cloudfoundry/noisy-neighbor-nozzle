@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"code.cloudfoundry.org/noisyneighbor/internal/web"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/web"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
