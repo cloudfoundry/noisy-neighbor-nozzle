@@ -29,12 +29,13 @@ func New(cfg Config) *NoisyNeighbor {
 			},
 		}),
 	)
-	token, err := auth.Token()
+	token, err := auth.RefreshAuthToken()
 	if err != nil {
 		log.Fatalf("failed to authenticate: %s", err)
 	}
 
 	cnsmr := consumer.New(cfg.LoggregatorAddr, cfg.TLSConfig, nil)
+	cnsmr.RefreshTokenFrom(auth)
 	msgs, errs := cnsmr.FilteredFirehose(
 		cfg.SubscriptionID,
 		token,

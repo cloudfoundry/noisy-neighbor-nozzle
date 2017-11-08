@@ -38,8 +38,8 @@ func NewAuthenticator(id, secret, uaaAddr string, opts ...AuthenticatorOption) *
 	return a
 }
 
-// Token will request a new auth token from UAA.
-func (a *Authenticator) Token() (string, error) {
+// RefreshAuthToken will request a new auth token from UAA.
+func (a *Authenticator) RefreshAuthToken() (string, error) {
 	response, err := a.httpClient.PostForm(a.uaaAddr+"/oauth/token", url.Values{
 		"response_type": {"token"},
 		"grant_type":    {"client_credentials"},

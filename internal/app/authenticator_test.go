@@ -25,7 +25,7 @@ var _ = Describe("Authenticator", func() {
 				app.WithHTTPClient(httpClient),
 			)
 
-			token, err := authenticator.Token()
+			token, err := authenticator.RefreshAuthToken()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(token).To(Equal("bearer my-token"))
 
