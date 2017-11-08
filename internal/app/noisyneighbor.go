@@ -54,7 +54,6 @@ func New(cfg Config) *NoisyNeighbor {
 	s := web.NewServer(
 		cfg.Port,
 		a.State,
-		auth.CheckToken,
 	)
 
 	return &NoisyNeighbor{
