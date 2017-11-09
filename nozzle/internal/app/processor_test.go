@@ -1,7 +1,7 @@
 package app_test
 
 import (
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/app"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/app"
 	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/gogo/protobuf/proto"
 

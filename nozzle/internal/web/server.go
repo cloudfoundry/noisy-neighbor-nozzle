@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/store"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/store"
 	"github.com/gorilla/mux"
 )
 

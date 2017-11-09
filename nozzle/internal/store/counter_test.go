@@ -1,7 +1,7 @@
 package store_test
 
 import (
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/store"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/store"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
