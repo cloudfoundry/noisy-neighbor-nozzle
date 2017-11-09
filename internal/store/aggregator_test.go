@@ -13,25 +13,40 @@ var _ = Describe("Aggregator", func() {
 	It("pulls and stores data from a counter on a given interval", func() {
 		c := store.NewCounter()
 
+		startTime := time.Now().Unix()
 		for i := 0; i < 5; i++ {
 			c.Inc("id-1")
 			c.Inc("id-2")
 		}
 
 		a := store.NewAggregator(c,
-			store.WithPollingInterval(50*time.Millisecond),
+			store.WithPollingInterval(time.Second),
 		)
 
 		go a.Run()
 
-		Eventually(a.State).Should(Equal(store.Rates{
-			{
-				Timestamp: time.Now().Unix(),
+		Eventually(a.State, 3).Should(Or(
+			ContainElement(store.Rate{
+				Timestamp: startTime - 1,
 				Counts: map[string]uint64{
 					"id-1": uint64(5),
 					"id-2": uint64(5),
 				},
-			},
-		}))
+			}),
+			ContainElement(store.Rate{
+				Timestamp: startTime,
+				Counts: map[string]uint64{
+					"id-1": uint64(5),
+					"id-2": uint64(5),
+				},
+			}),
+			ContainElement(store.Rate{
+				Timestamp: startTime + 1,
+				Counts: map[string]uint64{
+					"id-1": uint64(5),
+					"id-2": uint64(5),
+				},
+			}),
+		))
 	})
 })
