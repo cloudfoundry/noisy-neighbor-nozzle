@@ -23,7 +23,7 @@ var _ = Describe("Processor", func() {
 		p := app.NewProcessor(next, inc)
 		go p.Run()
 
-		Eventually(incIDs).Should(Receive(Equal("app-id")))
+		Eventually(incIDs).Should(Receive(Equal("some-guid")))
 	})
 
 	It("ignores envelopes that are not logs", func() {
@@ -47,7 +47,8 @@ var (
 	logMessage = &events.Envelope{
 		EventType: events.Envelope_LogMessage.Enum(),
 		LogMessage: &events.LogMessage{
-			AppId: proto.String("app-id"),
+			AppId:          proto.String("app-id"),
+			SourceInstance: proto.String("some-guid"),
 		},
 	}
 

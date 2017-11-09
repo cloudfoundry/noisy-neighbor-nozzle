@@ -25,7 +25,7 @@ func NewProcessor(n Next, i Inc) *Processor {
 }
 
 // Run will read events.Envelopes from the processors next func and increment
-// the counter for the Envelopes application ID. This is a blocking method that
+// the counter for the Envelopes source instance. This is a blocking method that
 // will run indefinately.
 func (p *Processor) Run() {
 	for {
@@ -35,6 +35,6 @@ func (p *Processor) Run() {
 			continue
 		}
 
-		p.inc(e.GetLogMessage().GetAppId())
+		p.inc(e.GetLogMessage().GetSourceInstance())
 	}
 }
