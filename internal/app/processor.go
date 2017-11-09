@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry/sonde-go/events"
 )
 
@@ -35,6 +37,9 @@ func (p *Processor) Run() {
 			continue
 		}
 
-		p.inc(e.GetLogMessage().GetSourceInstance())
+		p.inc(fmt.Sprintf("%s/%s",
+			e.GetLogMessage().GetAppId(),
+			e.GetLogMessage().GetSourceInstance(),
+		))
 	}
 }
