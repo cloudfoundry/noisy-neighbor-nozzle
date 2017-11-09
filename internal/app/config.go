@@ -34,7 +34,7 @@ func LoadConfig() Config {
 		log.Fatalf("failed to load config from environment: %s", err)
 	}
 
-	cfg.TLSConfig = &tls.Config{InsecureSkipVerify: !cfg.SkipCertVerify}
+	cfg.TLSConfig = &tls.Config{InsecureSkipVerify: cfg.SkipCertVerify}
 
 	return cfg
 }
