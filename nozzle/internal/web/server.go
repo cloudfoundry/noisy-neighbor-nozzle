@@ -14,6 +14,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// CheckToken is a function that is used by the AdminAuthMiddleware to check a
+// given token
+type CheckToken func(token, scope string) bool
+
 // RateStore is the interface from which the server will get rates to be
 // rendered via HTTP in JSON.
 type RateStore interface {
@@ -28,7 +32,7 @@ type Server struct {
 }
 
 // NewServer opens a TCP listener and returns an initialized Server.
-func NewServer(port uint16, store RateStore) *Server {
+func NewServer(port uint16, store RateStore, ct CheckToken) *Server {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to start listener: %d", port)
@@ -44,9 +48,11 @@ func NewServer(port uint16, store RateStore) *Server {
 	router.Handle("/state/{timestamp:[0-9]+}", StateShow(store)).
 		Methods(http.MethodGet)
 
+	authMiddleware := AdminAuthMiddleware(ct)
+
 	return &Server{
 		lis:    lis,
-		server: &http.Server{Handler: handlers.LoggingHandler(os.Stderr, router)},
+		server: &http.Server{Handler: handlers.LoggingHandler(os.Stderr, authMiddleware(router))},
 	}
 }
 
