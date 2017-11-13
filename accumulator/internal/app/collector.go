@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/datadogreporter"
 )
@@ -14,16 +15,29 @@ type Rate struct {
 	Counts    map[string]uint64 `json:"counts"`
 }
 
+type Authenticator interface {
+	RefreshAuthToken() (string, error)
+}
+
 // Collector handles fetch rates form multiple nozzles and summing their
 // rates.
 type Collector struct {
-	nozzles []string
+	nozzles    []string
+	auth       Authenticator
+	httpClient *http.Client
 }
 
 // NewCollector initializes and returns a new Collector.
-func NewCollector(nozzles []string) *Collector {
+func NewCollector(nozzles []string, auth Authenticator) *Collector {
 	return &Collector{
 		nozzles: nozzles,
+		auth:    auth,
+		httpClient: &http.Client{
+			Timeout: 30 * time.Second,
+			Transport: &http.Transport{
+				DisableKeepAlives: true,
+			},
+		},
 	}
 }
 
@@ -52,9 +66,24 @@ func (c *Collector) BuildPoints(timestamp int64) ([]datadogreporter.Point, error
 
 // rates will collect all the rates from all the nozzles.
 func (c *Collector) rates(timestamp int64) (Rate, error) {
+	token, err := c.auth.RefreshAuthToken()
+	if err != nil {
+		return Rate{}, err
+	}
+
 	var results []Rate
 	for _, n := range c.nozzles {
-		resp, err := http.Get(fmt.Sprintf("%s/state/%d", n, timestamp))
+		req, err := http.NewRequest(
+			http.MethodGet,
+			fmt.Sprintf("%s/state/%d", n, timestamp),
+			nil,
+		)
+		if err != nil {
+			return Rate{}, err
+		}
+
+		req.Header.Set("Authorization", token)
+		resp, err := c.httpClient.Do(req)
 		if err != nil {
 			return Rate{}, err
 		}

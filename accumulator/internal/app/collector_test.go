@@ -21,7 +21,7 @@ var _ = Describe("Collector", func() {
 			testServer, requests := setupTestServer(ts1, http.StatusOK)
 			defer testServer.Close()
 
-			c := app.NewCollector([]string{testServer.URL})
+			c := app.NewCollector([]string{testServer.URL}, &spyAuthenticator{})
 
 			points, err := c.BuildPoints(ts1)
 			Expect(err).ToNot(HaveOccurred())
@@ -30,6 +30,7 @@ var _ = Describe("Collector", func() {
 			var request request
 			Expect(requests).To(Receive(&request))
 			Expect(request.url.Path).To(Equal(fmt.Sprintf("/state/%d", ts1)))
+			Expect(request.headers.Get("Authorization")).To(Equal("valid-token"))
 
 			point := findPointWithTag("application.instance:app-1/0", points)
 			Expect(point).ToNot(BeZero())
@@ -57,7 +58,7 @@ var _ = Describe("Collector", func() {
 			_ = requestsA
 			_ = requestsB
 
-			c := app.NewCollector([]string{serverA.URL, serverB.URL})
+			c := app.NewCollector([]string{serverA.URL, serverB.URL}, &spyAuthenticator{})
 
 			points, err := c.BuildPoints(ts1)
 			Expect(err).ToNot(HaveOccurred())
@@ -84,7 +85,7 @@ var _ = Describe("Collector", func() {
 			defer serverA.Close()
 			defer serverB.Close()
 
-			c := app.NewCollector([]string{serverA.URL, serverB.URL})
+			c := app.NewCollector([]string{serverA.URL, serverB.URL}, &spyAuthenticator{})
 
 			_, err := c.BuildPoints(ts1)
 			Expect(err).To(HaveOccurred())
@@ -129,7 +130,8 @@ var _ = Describe("Collector", func() {
 })
 
 type request struct {
-	url *url.URL
+	url     *url.URL
+	headers http.Header
 }
 
 func setupTestServer(ts1 int64, statusCode int) (*httptest.Server, chan request) {
@@ -138,7 +140,8 @@ func setupTestServer(ts1 int64, statusCode int) (*httptest.Server, chan request)
 	return httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			requests <- request{
-				url: r.URL,
+				url:     r.URL,
+				headers: r.Header,
 			}
 
 			w.WriteHeader(statusCode)
@@ -167,4 +170,10 @@ func findPointWithTag(tag string, points []datadogreporter.Point) datadogreporte
 	}
 
 	return datadogreporter.Point{}
+}
+
+type spyAuthenticator struct{}
+
+func (s *spyAuthenticator) RefreshAuthToken() (string, error) {
+	return "valid-token", nil
 }

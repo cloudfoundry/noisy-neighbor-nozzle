@@ -1,4 +1,4 @@
-package app
+package authenticator
 
 import (
 	"encoding/json"

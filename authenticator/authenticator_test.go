@@ -1,4 +1,4 @@
-package app_test
+package authenticator_test
 
 import (
 	"io/ioutil"
@@ -6,23 +6,22 @@ import (
 	"net/url"
 	"strings"
 
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/app"
-
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/authenticator"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Authenticator", func() {
-	Describe("Token()", func() {
+	Describe("RefreshAuthToken()", func() {
 		It("returns an authentication token", func() {
 			httpClient := &spyHTTPClient{
 				statusCode: 200,
 			}
-			authenticator := app.NewAuthenticator(
+			authenticator := authenticator.NewAuthenticator(
 				"id",
 				"secret",
 				"http://localhost",
-				app.WithHTTPClient(httpClient),
+				authenticator.WithHTTPClient(httpClient),
 			)
 
 			token, err := authenticator.RefreshAuthToken()
@@ -44,9 +43,9 @@ var _ = Describe("Authenticator", func() {
 			httpClient := &spyHTTPClient{
 				statusCode: 200,
 			}
-			a := app.NewAuthenticator("", "",
+			a := authenticator.NewAuthenticator("", "",
 				"http://localhost",
-				app.WithHTTPClient(httpClient),
+				authenticator.WithHTTPClient(httpClient),
 			)
 
 			Expect(a.CheckToken("token", "scope")).To(BeTrue())
@@ -62,9 +61,9 @@ var _ = Describe("Authenticator", func() {
 			httpClient := &spyHTTPClient{
 				statusCode: 401,
 			}
-			a := app.NewAuthenticator("", "",
+			a := authenticator.NewAuthenticator("", "",
 				"http://localhost/api",
-				app.WithHTTPClient(httpClient),
+				authenticator.WithHTTPClient(httpClient),
 			)
 
 			Expect(a.CheckToken("token", "scope")).To(BeFalse())
@@ -74,9 +73,9 @@ var _ = Describe("Authenticator", func() {
 			httpClient := &spyHTTPClient{
 				statusCode: 200,
 			}
-			a := app.NewAuthenticator("", "",
+			a := authenticator.NewAuthenticator("", "",
 				"http://localhost",
-				app.WithHTTPClient(httpClient),
+				authenticator.WithHTTPClient(httpClient),
 			)
 
 			Expect(a.CheckToken("", "scope")).To(BeFalse())
@@ -86,9 +85,9 @@ var _ = Describe("Authenticator", func() {
 			httpClient := &spyHTTPClient{
 				statusCode: 200,
 			}
-			a := app.NewAuthenticator("", "",
+			a := authenticator.NewAuthenticator("", "",
 				"http://localhost",
-				app.WithHTTPClient(httpClient),
+				authenticator.WithHTTPClient(httpClient),
 			)
 
 			Expect(a.CheckToken("token", "")).To(BeFalse())

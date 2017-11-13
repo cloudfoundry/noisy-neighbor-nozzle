@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/authenticator"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/store"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/web"
 	"github.com/cloudfoundry/noaa/consumer"
@@ -22,8 +23,8 @@ type NoisyNeighbor struct {
 // New returns an initialized NoisyNeighbor. This will authenticate with UAA,
 // open a connection to the firehose, and initialize all subprocesses.
 func New(cfg Config) *NoisyNeighbor {
-	auth := NewAuthenticator(cfg.ClientID, cfg.ClientSecret, cfg.UAAAddr,
-		WithHTTPClient(&http.Client{
+	auth := authenticator.NewAuthenticator(cfg.ClientID, cfg.ClientSecret, cfg.UAAAddr,
+		authenticator.WithHTTPClient(&http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: cfg.TLSConfig,
 			},
