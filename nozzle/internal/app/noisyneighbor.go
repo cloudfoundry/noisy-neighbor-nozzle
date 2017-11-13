@@ -52,10 +52,7 @@ func New(cfg Config) *NoisyNeighbor {
 	a := store.NewAggregator(c,
 		store.WithPollingInterval(cfg.PollingInterval),
 	)
-	s := web.NewServer(
-		cfg.Port,
-		a.State,
-	)
+	s := web.NewServer(cfg.Port, a)
 
 	return &NoisyNeighbor{
 		cfg:        cfg,

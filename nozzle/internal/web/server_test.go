@@ -13,30 +13,9 @@ import (
 )
 
 var _ = Describe("Server", func() {
-	Describe("/stats", func() {
-		It("returns a list of top offenders", func() {
-			fakeRates := func() store.Rates {
-				return []store.Rate{
-					{
-						Timestamp: 1234,
-						Counts: map[string]uint64{
-							"id-1": uint64(9999),
-							"id-2": uint64(9999),
-							"id-3": uint64(9999),
-						},
-					},
-					{
-						Timestamp: 12345,
-						Counts: map[string]uint64{
-							"id-1": uint64(9999),
-							"id-2": uint64(9999),
-							"id-3": uint64(9999),
-						},
-					},
-				}
-			}
-
-			server := web.NewServer(0, fakeRates)
+	Describe("/state", func() {
+		It("returns the current state of the aggregator", func() {
+			server := web.NewServer(0, &rateStore{})
 			go server.Serve()
 			defer server.Stop()
 
@@ -83,4 +62,74 @@ var _ = Describe("Server", func() {
 			]`))
 		})
 	})
+
+	Describe("/state/:timestamp", func() {
+		It("returns the rates for a given timestamp", func() {
+			server := web.NewServer(0, &rateStore{})
+			go server.Serve()
+			defer server.Stop()
+
+			var resp *http.Response
+			Eventually(func() error {
+				req, err := http.NewRequest(
+					http.MethodGet,
+					fmt.Sprintf("http://%s/state/not-integer", server.Addr()),
+					nil,
+				)
+				Expect(err).ToNot(HaveOccurred())
+
+				resp, err = http.DefaultClient.Do(req)
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}).Should(Succeed())
+			defer resp.Body.Close()
+
+			Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+		})
+
+		It("returns a 404 if the timestamp is not an integer", func() {
+			server := web.NewServer(0, &rateStore{})
+			go server.Serve()
+			defer server.Stop()
+		})
+	})
 })
+
+type rateStore struct {
+	rateError error
+}
+
+func (f *rateStore) Rates() store.Rates {
+	return []store.Rate{
+		{
+			Timestamp: 1234,
+			Counts: map[string]uint64{
+				"id-1": uint64(9999),
+				"id-2": uint64(9999),
+				"id-3": uint64(9999),
+			},
+		},
+		{
+			Timestamp: 12345,
+			Counts: map[string]uint64{
+				"id-1": uint64(9999),
+				"id-2": uint64(9999),
+				"id-3": uint64(9999),
+			},
+		},
+	}
+}
+
+func (f *rateStore) Rate(ts int64) (store.Rate, error) {
+	return store.Rate{
+		Timestamp: 1234,
+		Counts: map[string]uint64{
+			"id-1": uint64(9999),
+			"id-2": uint64(9999),
+			"id-3": uint64(9999),
+		},
+	}, f.rateError
+}

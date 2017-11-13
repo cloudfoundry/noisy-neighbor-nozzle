@@ -1,10 +1,20 @@
 package store
 
 import (
+	"errors"
 	"sort"
 	"sync"
 	"time"
 )
+
+var (
+	errRateNotFound = errors.New("rate not found")
+)
+
+// RateCounter is the interface the Aggregator will poll data from.
+type RateCounter interface {
+	Reset() map[string]uint64
+}
 
 // Aggregator will pull from the Counter on a given interval and store rates for
 // that interval.
@@ -12,12 +22,12 @@ type Aggregator struct {
 	mu   sync.RWMutex
 	data map[int64]map[string]uint64
 
-	counter         *Counter
+	counter         RateCounter
 	pollingInterval time.Duration
 }
 
 // NewAggregator will return an initialized Aggregator
-func NewAggregator(c *Counter, opts ...AggregatorOption) *Aggregator {
+func NewAggregator(c RateCounter, opts ...AggregatorOption) *Aggregator {
 	a := &Aggregator{
 		data:            make(map[int64]map[string]uint64),
 		counter:         c,
@@ -51,8 +61,8 @@ func (a *Aggregator) Run() {
 	}
 }
 
-// State returns the current state of the aggregator.
-func (a *Aggregator) State() Rates {
+// Rates returns the current state of the aggregator.
+func (a *Aggregator) Rates() Rates {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
@@ -73,6 +83,19 @@ func (a *Aggregator) State() Rates {
 	sort.Sort(Rates(rates))
 
 	return rates
+}
+
+// Rate returns the rates for a single time period.
+func (a *Aggregator) Rate(timestamp int64) (Rate, error) {
+	counts, ok := a.data[timestamp]
+	if !ok {
+		return Rate{}, errRateNotFound
+	}
+
+	return Rate{
+		Timestamp: timestamp,
+		Counts:    counts,
+	}, nil
 }
 
 // AggregatorOption are funcs that can be used to configure an Aggregator at

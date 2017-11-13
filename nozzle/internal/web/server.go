@@ -12,8 +12,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Rates is a getter func for getting the current state from the store.Aggregator
-type Rates func() store.Rates
+// RateStore is the interface from which the server will get rates to be
+// rendered via HTTP in JSON.
+type RateStore interface {
+	Rates() store.Rates
+	Rate(int64) (store.Rate, error)
+}
 
 // Server handles setting up an HTTP server and servicing HTTP requests.
 type Server struct {
@@ -22,10 +26,7 @@ type Server struct {
 }
 
 // NewServer opens a TCP listener and returns an initialized Server.
-func NewServer(
-	port uint16,
-	r Rates,
-) *Server {
+func NewServer(port uint16, store RateStore) *Server {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to start listener: %d", port)
@@ -35,7 +36,10 @@ func NewServer(
 
 	router := mux.NewRouter()
 
-	router.Handle("/state", StateIndex(r)).
+	router.Handle("/state", StateIndex(store)).
+		Methods(http.MethodGet)
+
+	router.Handle("/state/{timestamp:[0-9]+}", StateShow(store)).
 		Methods(http.MethodGet)
 
 	return &Server{
