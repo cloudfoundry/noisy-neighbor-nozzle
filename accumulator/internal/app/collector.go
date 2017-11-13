@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/datadogreporter"
@@ -33,7 +32,6 @@ func NewCollector(nozzles []string) *Collector {
 func (c *Collector) BuildPoints(timestamp int64) ([]datadogreporter.Point, error) {
 	rate, err := c.rates(timestamp)
 	if err != nil {
-		log.Printf("failed to get rates: %s", err)
 		return nil, err
 	}
 
@@ -64,7 +62,7 @@ func (c *Collector) rates(timestamp int64) (Rate, error) {
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return Rate{}, fmt.Errorf("Failed to get rates. Expected status code 200, got %d", resp.StatusCode)
+			return Rate{}, fmt.Errorf("failed to get rates, expected status code 200, got %d", resp.StatusCode)
 		}
 
 		var rate Rate

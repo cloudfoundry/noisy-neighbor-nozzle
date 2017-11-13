@@ -6,9 +6,11 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/store"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -44,7 +46,7 @@ func NewServer(port uint16, store RateStore) *Server {
 
 	return &Server{
 		lis:    lis,
-		server: &http.Server{Handler: router},
+		server: &http.Server{Handler: handlers.LoggingHandler(os.Stderr, router)},
 	}
 }
 

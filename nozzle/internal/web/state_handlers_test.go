@@ -1,12 +1,12 @@
 package web_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/web"
+	"github.com/gorilla/mux"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,33 +16,28 @@ var _ = Describe("StateHandlers", func() {
 	Describe("StateShow", func() {
 		It("returns a 404 when timestamp is not a number", func() {
 			h := web.StateShow(&rateStore{})
+			router := mux.NewRouter()
+			router.Handle("/state/{timestamp}", h)
 
-			r, err := http.NewRequest("", "", nil)
+			r, err := http.NewRequest("", "/state/not-a-number", nil)
 			Expect(err).ToNot(HaveOccurred())
 
-			r = r.WithContext(
-				context.WithValue(context.Background(), "timestamp", "not-a-number"),
-			)
-
-			Expect(r.Context().Value("timestamp")).To(Equal("not-a-number"))
-
 			w := httptest.NewRecorder()
-			h.ServeHTTP(w, r)
+			router.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusNotFound))
 		})
 
 		It("returns a 404 when a rate is not found", func() {
 			h := web.StateShow(&rateStore{rateError: errors.New("not found")})
+			router := mux.NewRouter()
+			router.Handle("/state/{timestamp}", h)
 
-			r, err := http.NewRequest("", "", nil)
+			r, err := http.NewRequest("", "/state/12345", nil)
 			Expect(err).ToNot(HaveOccurred())
 
-			r = r.WithContext(
-				context.WithValue(context.Background(), "timestamp", "12345"),
-			)
 			w := httptest.NewRecorder()
-			h.ServeHTTP(w, r)
+			router.ServeHTTP(w, r)
 
 			Expect(w.Code).To(Equal(http.StatusNotFound))
 		})

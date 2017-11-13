@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 // StateIndex returns a HTTP handler for returning a list of the top
@@ -19,7 +21,7 @@ func StateIndex(store RateStore) http.Handler {
 
 func StateShow(store RateStore) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t, ok := r.Context().Value("timestamp").(string)
+		t, ok := mux.Vars(r)["timestamp"]
 		if !ok {
 			w.WriteHeader(http.StatusBadRequest)
 			return
