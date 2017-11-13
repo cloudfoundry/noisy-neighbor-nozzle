@@ -87,6 +87,9 @@ func (a *Aggregator) Rates() Rates {
 
 // Rate returns the rates for a single time period.
 func (a *Aggregator) Rate(timestamp int64) (Rate, error) {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
 	counts, ok := a.data[timestamp]
 	if !ok {
 		return Rate{}, errRateNotFound
