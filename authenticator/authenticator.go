@@ -75,7 +75,7 @@ func (a *Authenticator) RefreshAuthToken() (string, error) {
 		return "", errors.New("access_token on UAA oauth response not a string")
 	}
 
-	return "bearer " + accessToken, nil
+	return accessToken, nil
 }
 
 // CheckToken validates an auth token with the UAA. It also ensures that the

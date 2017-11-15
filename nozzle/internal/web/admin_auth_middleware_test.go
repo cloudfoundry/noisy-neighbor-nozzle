@@ -25,7 +25,7 @@ var _ = Describe("AdminAuthorizer", func() {
 		recorder := httptest.NewRecorder()
 		handler := web.AdminAuthMiddleware(checkToken)(stub)
 		req := httptest.NewRequest("GET", "/", nil)
-		req.Header.Add("Authorization", "valid-token")
+		req.Header.Add("Authorization", "Bearer valid-token")
 
 		handler.ServeHTTP(recorder, req)
 
@@ -46,11 +46,28 @@ var _ = Describe("AdminAuthorizer", func() {
 		recorder := httptest.NewRecorder()
 		handler := web.AdminAuthMiddleware(checkToken)(stub)
 		req := httptest.NewRequest("GET", "/", nil)
-		req.Header.Add("Authorization", "invalid-token")
+		req.Header.Add("Authorization", "Bearer invalid-token")
 
 		handler.ServeHTTP(recorder, req)
 
 		Expect(recorder.Code).To(Equal(http.StatusUnauthorized))
+		Expect(stubCalled).To(Equal(0))
+	})
+
+	It("returns a 400 if the Authorization header is malformed", func() {
+		checkToken := func(token, scope string) bool { return false }
+		var stubCalled int
+		stub := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			stubCalled++
+		})
+		recorder := httptest.NewRecorder()
+		handler := web.AdminAuthMiddleware(checkToken)(stub)
+		req := httptest.NewRequest("GET", "/", nil)
+		req.Header.Add("Authorization", "Bearer")
+
+		handler.ServeHTTP(recorder, req)
+
+		Expect(recorder.Code).To(Equal(http.StatusBadRequest))
 		Expect(stubCalled).To(Equal(0))
 	})
 })

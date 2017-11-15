@@ -1,6 +1,9 @@
 package web
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 var (
 	requiredScope = "doppler.firehose"
@@ -11,7 +14,13 @@ var (
 func AdminAuthMiddleware(ct CheckToken) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if !ct(r.Header.Get("Authorization"), requiredScope) {
+			items := strings.Split(r.Header.Get("Authorization"), " ")
+			if len(items) != 2 {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			token := items[1]
+			if !ct(token, requiredScope) {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}

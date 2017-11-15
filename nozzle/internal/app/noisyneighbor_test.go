@@ -17,7 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Noisyneighbor", func() {
+var _ = Describe("Nozzle", func() {
 	It("serves an HTTP endpoint with the noisiest applications", func() {
 		uaa := newSpyUAA()
 		defer uaa.stop()
@@ -41,6 +41,7 @@ var _ = Describe("Noisyneighbor", func() {
 				fmt.Sprintf("http://%s/state", nn.Addr()),
 				nil,
 			)
+			req.Header.Add("Authorization", "Bearer some-token")
 
 			_, err = http.DefaultClient.Do(req)
 

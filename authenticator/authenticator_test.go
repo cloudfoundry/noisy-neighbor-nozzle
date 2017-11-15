@@ -26,7 +26,7 @@ var _ = Describe("Authenticator", func() {
 
 			token, err := authenticator.RefreshAuthToken()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(token).To(Equal("bearer my-token"))
+			Expect(token).To(Equal("my-token"))
 
 			Expect(httpClient.url).To(Equal("http://localhost/oauth/token"))
 			Expect(httpClient.body).To(Equal(url.Values{

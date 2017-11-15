@@ -30,7 +30,7 @@ var _ = Describe("Collector", func() {
 			var request request
 			Expect(requests).To(Receive(&request))
 			Expect(request.url.Path).To(Equal(fmt.Sprintf("/state/%d", ts1)))
-			Expect(request.headers.Get("Authorization")).To(Equal("valid-token"))
+			Expect(request.headers.Get("Authorization")).To(Equal("Bearer valid-token"))
 
 			point := findPointWithTag("application.instance:app-1/0", points)
 			Expect(point).ToNot(BeZero())

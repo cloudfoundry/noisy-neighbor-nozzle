@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -27,12 +28,13 @@ type RateStore interface {
 
 // Server handles setting up an HTTP server and servicing HTTP requests.
 type Server struct {
-	lis    net.Listener
-	server *http.Server
+	lis       net.Listener
+	server    *http.Server
+	logWriter io.Writer
 }
 
 // NewServer opens a TCP listener and returns an initialized Server.
-func NewServer(port uint16, store RateStore, ct CheckToken) *Server {
+func NewServer(port uint16, store RateStore, ct CheckToken, opts ...ServerOption) *Server {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to start listener: %d", port)
@@ -50,10 +52,20 @@ func NewServer(port uint16, store RateStore, ct CheckToken) *Server {
 
 	authMiddleware := AdminAuthMiddleware(ct)
 
-	return &Server{
-		lis:    lis,
-		server: &http.Server{Handler: handlers.LoggingHandler(os.Stderr, authMiddleware(router))},
+	s := &Server{
+		lis:       lis,
+		logWriter: os.Stdout,
 	}
+
+	for _, o := range opts {
+		o(s)
+	}
+
+	s.server = &http.Server{
+		Handler: handlers.LoggingHandler(s.logWriter, authMiddleware(router)),
+	}
+
+	return s
 }
 
 // Addr returns the address that the listener is bound to.
@@ -73,4 +85,15 @@ func (s *Server) Stop() {
 	defer cancel()
 
 	log.Println(s.server.Shutdown(ctx))
+}
+
+// ServerOption is a function that can be passed to the server initializer to
+// configure optional settings.
+type ServerOption func(*Server)
+
+// WithLogWriter will override the logger used for HTTP logs.
+func WithLogWriter(w io.Writer) ServerOption {
+	return func(s *Server) {
+		s.logWriter = w
+	}
 }

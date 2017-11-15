@@ -82,7 +82,8 @@ func (c *Collector) rates(timestamp int64) (Rate, error) {
 			return Rate{}, err
 		}
 
-		req.Header.Set("Authorization", token)
+		tokenWithAuthMethod := fmt.Sprintf("Bearer %s", token)
+		req.Header.Set("Authorization", tokenWithAuthMethod)
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
 			return Rate{}, err

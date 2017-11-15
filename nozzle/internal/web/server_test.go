@@ -15,7 +15,9 @@ import (
 var _ = Describe("Server", func() {
 	Describe("/state", func() {
 		It("returns the current state of the aggregator", func() {
-			server := web.NewServer(0, &rateStore{}, checkToken)
+			server := web.NewServer(0, &rateStore{}, checkToken,
+				web.WithLogWriter(GinkgoWriter),
+			)
 			go server.Serve()
 			defer server.Stop()
 
@@ -27,6 +29,7 @@ var _ = Describe("Server", func() {
 					nil,
 				)
 				Expect(err).ToNot(HaveOccurred())
+				req.Header.Add("Authorization", "Bearer some-token")
 
 				resp, err = http.DefaultClient.Do(req)
 				if err != nil {
@@ -75,6 +78,7 @@ var _ = Describe("Server", func() {
 					nil,
 				)
 				Expect(err).ToNot(HaveOccurred())
+				req.Header.Add("Authorization", "Bearer bad-token")
 
 				resp, err = http.DefaultClient.Do(req)
 				if err != nil {
@@ -90,7 +94,7 @@ var _ = Describe("Server", func() {
 	})
 
 	Describe("/state/:timestamp", func() {
-		It("returns the rates for a given timestamp", func() {
+		It("returns a 404 on bad timestamps", func() {
 			server := web.NewServer(0, &rateStore{}, checkToken)
 			go server.Serve()
 			defer server.Stop()
@@ -103,6 +107,7 @@ var _ = Describe("Server", func() {
 					nil,
 				)
 				Expect(err).ToNot(HaveOccurred())
+				req.Header.Add("Authorization", "Bearer some-token")
 
 				resp, err = http.DefaultClient.Do(req)
 				if err != nil {
@@ -129,6 +134,7 @@ var _ = Describe("Server", func() {
 					nil,
 				)
 				Expect(err).ToNot(HaveOccurred())
+				req.Header.Add("Authorization", "Bearer bad-token")
 
 				resp, err = http.DefaultClient.Do(req)
 				if err != nil {

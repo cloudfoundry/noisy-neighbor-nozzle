@@ -11,5 +11,5 @@ import (
 func TestNoisyneighbor(t *testing.T) {
 	log.SetOutput(GinkgoWriter)
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Noisyneighbor Suite")
+	RunSpecs(t, "Nozzle Suite")
 }
