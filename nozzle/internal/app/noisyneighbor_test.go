@@ -27,6 +27,7 @@ var _ = Describe("Nozzle", func() {
 			LoggregatorAddr: strings.Replace(loggregator.server.URL, "http", "ws", -1),
 			BufferSize:      1000,
 			PollingInterval: 100 * time.Millisecond,
+			MaxRateBuckets:  10,
 			UAAAddr:         uaa.server.URL,
 		}
 		nn := app.New(cfg)

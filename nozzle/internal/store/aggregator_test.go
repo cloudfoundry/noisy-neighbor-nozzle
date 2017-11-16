@@ -13,7 +13,7 @@ var _ = Describe("Aggregator", func() {
 	Describe("Rates", func() {
 		It("pulls and stores data from a counter on a given interval", func() {
 			a := store.NewAggregator(stubRateCounter{},
-				store.WithPollingInterval(1*time.Millisecond),
+				store.WithPollingInterval(time.Second),
 			)
 
 			go a.Run()
@@ -31,6 +31,18 @@ var _ = Describe("Aggregator", func() {
 				"id-1": uint64(5),
 				"id-2": uint64(5),
 			}))
+		})
+
+		It("prunes older rates", func() {
+			a := store.NewAggregator(stubRateCounter{},
+				store.WithPollingInterval(1*time.Millisecond),
+				store.WithMaxRateBuckets(2),
+			)
+
+			go a.Run()
+
+			Eventually(a.Rates).Should(HaveLen(2))
+			Consistently(a.Rates).Should(HaveLen(2))
 		})
 	})
 

@@ -19,6 +19,7 @@ type Config struct {
 	SkipCertVerify  bool          `env:"SKIP_CERT_VERIFY"`
 	BufferSize      int           `env:"BUFFER_SIZE"`
 	PollingInterval time.Duration `env:"POLLING_INTERVAL"`
+	MaxRateBuckets  int           `env:"MAX_RATE_BUCKETS"`
 	TLSConfig       *tls.Config
 }
 
@@ -28,6 +29,7 @@ func LoadConfig() Config {
 		SkipCertVerify:  false,
 		BufferSize:      10000,
 		PollingInterval: time.Minute,
+		MaxRateBuckets:  60,
 	}
 
 	if err := envstruct.Load(&cfg); err != nil {

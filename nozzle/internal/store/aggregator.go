@@ -1,6 +1,7 @@
 package store
 
 import (
+	"container/ring"
 	"errors"
 	"sort"
 	"sync"
@@ -20,24 +21,26 @@ type RateCounter interface {
 // that interval.
 type Aggregator struct {
 	mu   sync.RWMutex
-	data map[int64]map[string]uint64
+	data *ring.Ring
 
 	counter         RateCounter
 	pollingInterval time.Duration
+	maxRateBuckets  int
 }
 
 // NewAggregator will return an initialized Aggregator
 func NewAggregator(c RateCounter, opts ...AggregatorOption) *Aggregator {
 	a := &Aggregator{
-		data:            make(map[int64]map[string]uint64),
 		counter:         c,
 		pollingInterval: time.Minute,
+		maxRateBuckets:  10,
 	}
 
 	for _, o := range opts {
 		o(a)
 	}
 
+	a.data = ring.New(a.maxRateBuckets)
 	return a
 }
 
@@ -51,13 +54,15 @@ func (a *Aggregator) Run() {
 		time.Sleep(wait)
 
 		ts := time.Now().Truncate(a.pollingInterval)
-		data := a.counter.Reset()
+		counts := a.counter.Reset()
 
 		a.mu.Lock()
-		a.data[ts.Unix()] = data
+		a.data = a.data.Next()
+		a.data.Value = Rate{
+			Timestamp: ts.Unix(),
+			Counts:    counts,
+		}
 		a.mu.Unlock()
-
-		// TODO: Remove old keys
 	}
 }
 
@@ -66,19 +71,14 @@ func (a *Aggregator) Rates() Rates {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	rates := make([]Rate, 0, len(a.data))
-	for ts, data := range a.data {
-		r := Rate{
-			Timestamp: ts,
-			Counts:    make(map[string]uint64),
+	rates := make([]Rate, 0, a.data.Len())
+	a.data.Next().Do(func(value interface{}) {
+		if value == nil {
+			return
 		}
 
-		for id, count := range data {
-			r.Counts[id] = count
-		}
-
-		rates = append(rates, r)
-	}
+		rates = append(rates, value.(Rate))
+	})
 
 	sort.Sort(Rates(rates))
 
@@ -90,15 +90,20 @@ func (a *Aggregator) Rate(timestamp int64) (Rate, error) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	counts, ok := a.data[timestamp]
-	if !ok {
-		return Rate{}, errRateNotFound
-	}
+	err := errRateNotFound
+	var rate Rate
+	a.data.Next().Do(func(value interface{}) {
+		if value == nil {
+			return
+		}
 
-	return Rate{
-		Timestamp: timestamp,
-		Counts:    counts,
-	}, nil
+		if value.(Rate).Timestamp == timestamp {
+			rate = value.(Rate)
+			err = nil
+		}
+	})
+
+	return rate, err
 }
 
 // AggregatorOption are funcs that can be used to configure an Aggregator at
@@ -113,5 +118,13 @@ type AggregatorOption func(a *Aggregator)
 func WithPollingInterval(d time.Duration) AggregatorOption {
 	return func(a *Aggregator) {
 		a.pollingInterval = d
+	}
+}
+
+// WithMaxRateBuckets returns an AggregatorOption to configure the max number
+// of Rate bucketes to store.
+func WithMaxRateBuckets(n int) AggregatorOption {
+	return func(a *Aggregator) {
+		a.maxRateBuckets = n
 	}
 }
