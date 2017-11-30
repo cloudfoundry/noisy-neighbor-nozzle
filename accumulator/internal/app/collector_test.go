@@ -21,7 +21,11 @@ var _ = Describe("Collector", func() {
 			testServer, requests := setupTestServer(ts1, http.StatusOK)
 			defer testServer.Close()
 
-			c := app.NewCollector([]string{testServer.URL}, &spyAuthenticator{})
+			c := app.NewCollector(
+				[]string{testServer.URL},
+				&spyAuthenticator{},
+				"app-guid",
+			)
 
 			points, err := c.BuildPoints(ts1)
 			Expect(err).ToNot(HaveOccurred())
@@ -31,6 +35,7 @@ var _ = Describe("Collector", func() {
 			Expect(requests).To(Receive(&request))
 			Expect(request.url.Path).To(Equal(fmt.Sprintf("/state/%d", ts1)))
 			Expect(request.headers.Get("Authorization")).To(Equal("Bearer valid-token"))
+			Expect(request.headers.Get("X-CF-APP-INSTANCE")).To(Equal("app-guid:0"))
 
 			point := findPointWithTag("application.instance:app-1/0", points)
 			Expect(point).ToNot(BeZero())
@@ -55,13 +60,20 @@ var _ = Describe("Collector", func() {
 			defer serverA.Close()
 			defer serverB.Close()
 
-			_ = requestsA
-			_ = requestsB
-
-			c := app.NewCollector([]string{serverA.URL, serverB.URL}, &spyAuthenticator{})
+			c := app.NewCollector(
+				[]string{serverA.URL, serverB.URL},
+				&spyAuthenticator{},
+				"app-guid",
+			)
 
 			points, err := c.BuildPoints(ts1)
 			Expect(err).ToNot(HaveOccurred())
+
+			var request request
+			Expect(requestsA).To(Receive(&request))
+			Expect(request.headers.Get("X-CF-APP-INSTANCE")).To(Equal("app-guid:0"))
+			Expect(requestsB).To(Receive(&request))
+			Expect(request.headers.Get("X-CF-APP-INSTANCE")).To(Equal("app-guid:1"))
 
 			point := findPointWithTag("application.instance:app-1/0", points)
 			Expect(point).ToNot(BeZero())
@@ -81,17 +93,15 @@ var _ = Describe("Collector", func() {
 		It("limits the number of points returned", func() {
 			ts1 := time.Now().Add(time.Minute).Unix()
 
-			serverA, requestsA := setupTestServer(ts1, http.StatusOK)
-			serverB, requestsB := setupTestServer(ts1, http.StatusOK)
+			serverA, _ := setupTestServer(ts1, http.StatusOK)
+			serverB, _ := setupTestServer(ts1, http.StatusOK)
 			defer serverA.Close()
 			defer serverB.Close()
-
-			_ = requestsA
-			_ = requestsB
 
 			c := app.NewCollector(
 				[]string{serverA.URL, serverB.URL},
 				&spyAuthenticator{},
+				"",
 				app.WithReportLimit(1),
 			)
 
@@ -111,6 +121,30 @@ var _ = Describe("Collector", func() {
 			}))
 		})
 
+		It("does not send X-CF-APP-INSTANCE header if nozzle app guid is empty", func() {
+			ts1 := time.Now().Add(time.Minute).Unix()
+
+			serverA, requestsA := setupTestServer(ts1, http.StatusOK)
+			serverB, requestsB := setupTestServer(ts1, http.StatusOK)
+			defer serverA.Close()
+			defer serverB.Close()
+
+			c := app.NewCollector(
+				[]string{serverA.URL, serverB.URL},
+				&spyAuthenticator{},
+				"",
+			)
+
+			_, err := c.BuildPoints(ts1)
+			Expect(err).ToNot(HaveOccurred())
+
+			var request request
+			Expect(requestsA).To(Receive(&request))
+			Expect(request.headers.Get("X-CF-APP-INSTANCE")).To(Equal(""))
+			Expect(requestsB).To(Receive(&request))
+			Expect(request.headers.Get("X-CF-APP-INSTANCE")).To(Equal(""))
+		})
+
 		It("returns an error if any of the nozzles return a non 200 status code", func() {
 			ts1 := time.Now().Add(time.Minute).Unix()
 			serverA, _ := setupTestServer(ts1, http.StatusOK)
@@ -118,7 +152,11 @@ var _ = Describe("Collector", func() {
 			defer serverA.Close()
 			defer serverB.Close()
 
-			c := app.NewCollector([]string{serverA.URL, serverB.URL}, &spyAuthenticator{})
+			c := app.NewCollector(
+				[]string{serverA.URL, serverB.URL},
+				&spyAuthenticator{},
+				"app-guid",
+			)
 
 			_, err := c.BuildPoints(ts1)
 			Expect(err).To(HaveOccurred())

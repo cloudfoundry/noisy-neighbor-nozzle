@@ -21,7 +21,7 @@ func main() {
 	)
 
 	log.Printf("initializing collector with nozzles: %+v", cfg.NozzleAddrs)
-	collector := app.NewCollector(cfg.NozzleAddrs, auth,
+	collector := app.NewCollector(cfg.NozzleAddrs, auth, cfg.NozzleAppGUID,
 		app.WithReportLimit(cfg.ReportLimit),
 	)
 
