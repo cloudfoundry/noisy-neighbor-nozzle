@@ -31,14 +31,20 @@ type Authenticator interface {
 // Collector handles fetch rates form multiple nozzles and summing their
 // rates.
 type Collector struct {
-	nozzles     []string
-	auth        Authenticator
-	httpClient  *http.Client
-	reportLimit int
+	nozzles       []string
+	auth          Authenticator
+	httpClient    *http.Client
+	reportLimit   int
+	nozzleAppGUID string
 }
 
 // NewCollector initializes and returns a new Collector.
-func NewCollector(nozzles []string, auth Authenticator, opts ...CollectorOption) *Collector {
+func NewCollector(
+	nozzles []string,
+	auth Authenticator,
+	nozzleAppGUID string,
+	opts ...CollectorOption,
+) *Collector {
 	c := &Collector{
 		nozzles: nozzles,
 		auth:    auth,
@@ -48,7 +54,8 @@ func NewCollector(nozzles []string, auth Authenticator, opts ...CollectorOption)
 				DisableKeepAlives: true,
 			},
 		},
-		reportLimit: 250,
+		reportLimit:   250,
+		nozzleAppGUID: nozzleAppGUID,
 	}
 
 	for _, o := range opts {
@@ -94,7 +101,7 @@ func (c *Collector) rates(timestamp int64) (Rate, error) {
 	}
 
 	var results []Rate
-	for _, n := range c.nozzles {
+	for i, n := range c.nozzles {
 		req, err := http.NewRequest(
 			http.MethodGet,
 			fmt.Sprintf("%s/state/%d", n, timestamp),
@@ -104,8 +111,12 @@ func (c *Collector) rates(timestamp int64) (Rate, error) {
 			return Rate{}, err
 		}
 
-		tokenWithAuthMethod := fmt.Sprintf("Bearer %s", token)
-		req.Header.Set("Authorization", tokenWithAuthMethod)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+		if c.nozzleAppGUID != "" {
+			req.Header.Set("X-CF-APP-INSTANCE", fmt.Sprintf("%s:%d", c.nozzleAppGUID, i))
+		}
+
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
 			return Rate{}, err
