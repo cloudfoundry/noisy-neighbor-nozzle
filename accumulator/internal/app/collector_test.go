@@ -78,6 +78,39 @@ var _ = Describe("Collector", func() {
 			}))
 		})
 
+		It("limits the number of points returned", func() {
+			ts1 := time.Now().Add(time.Minute).Unix()
+
+			serverA, requestsA := setupTestServer(ts1, http.StatusOK)
+			serverB, requestsB := setupTestServer(ts1, http.StatusOK)
+			defer serverA.Close()
+			defer serverB.Close()
+
+			_ = requestsA
+			_ = requestsB
+
+			c := app.NewCollector(
+				[]string{serverA.URL, serverB.URL},
+				&spyAuthenticator{},
+				app.WithReportLimit(1),
+			)
+
+			points, err := c.BuildPoints(ts1)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(points).To(HaveLen(1))
+
+			Expect(points).To(Equal([]datadogreporter.Point{
+				{
+					Metric: "application.ingress",
+					Points: [][]int64{[]int64{ts1, 2372}},
+					Type:   "gauge",
+					Tags: []string{
+						"application.instance:app-1/0",
+					},
+				},
+			}))
+		})
+
 		It("returns an error if any of the nozzles return a non 200 status code", func() {
 			ts1 := time.Now().Add(time.Minute).Unix()
 			serverA, _ := setupTestServer(ts1, http.StatusOK)

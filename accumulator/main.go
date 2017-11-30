@@ -21,7 +21,9 @@ func main() {
 	)
 
 	log.Printf("initializing collector with nozzles: %+v", cfg.NozzleAddrs)
-	collector := app.NewCollector(cfg.NozzleAddrs, auth)
+	collector := app.NewCollector(cfg.NozzleAddrs, auth,
+		app.WithReportLimit(cfg.ReportLimit),
+	)
 
 	log.Printf("initializing datadog reporter")
 	reporter := datadogreporter.New(
