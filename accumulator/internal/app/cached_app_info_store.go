@@ -4,6 +4,8 @@ import (
 	"log"
 	"strings"
 	"sync"
+
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/app"
 )
 
 // CachedAppInfoStore caches app info lookups against the APIStore.
@@ -11,7 +13,7 @@ type CachedAppInfoStore struct {
 	store AppInfoStore
 
 	mu    sync.Mutex
-	cache map[AppGUID]AppInfo
+	cache map[app.AppGUID]AppInfo
 }
 
 // NewCachedAppInfoStore initializes a CachedAppInfoStore.

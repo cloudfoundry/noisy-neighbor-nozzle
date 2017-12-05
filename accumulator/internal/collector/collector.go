@@ -1,4 +1,4 @@
-package app
+package collector
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 	"sort"
 	"time"
 
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/app"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/datadogreporter"
 )
 
@@ -30,7 +31,7 @@ type Authenticator interface {
 
 // AppInfoStore provides a way to find AppInfo for an app GUID.
 type AppInfoStore interface {
-	Lookup(guids []string) (map[AppGUID]AppInfo, error)
+	Lookup(guids []string) (map[app.AppGUID]AppInfo, error)
 }
 
 // Collector handles fetch rates form multiple nozzles and summing their
@@ -44,8 +45,8 @@ type Collector struct {
 	store         AppInfoStore
 }
 
-// NewCollector initializes and returns a new Collector.
-func NewCollector(
+// New initializes and returns a new Collector.
+func New(
 	nozzles []string,
 	auth Authenticator,
 	nozzleAppGUID string,
@@ -76,7 +77,7 @@ func NewCollector(
 // BuildPoints satisfies the datadogreporter PointBuilder interface. It will
 // request all the rates from all the known nozzles and sum their counts.
 func (c *Collector) BuildPoints(timestamp int64) ([]datadogreporter.Point, error) {
-	rate, err := c.rates(timestamp)
+	rate, err := c.Rate(timestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -118,8 +119,9 @@ func (c *Collector) BuildPoints(timestamp int64) ([]datadogreporter.Point, error
 	return ddPoints[0:c.reportLimit], nil
 }
 
-// rates will collect all the rates from all the nozzles.
-func (c *Collector) rates(timestamp int64) (Rate, error) {
+// Rate will collect rates from all the nozzles and sum the totals to produce a
+// a single Rate struct.
+func (c *Collector) Rate(timestamp int64) (Rate, error) {
 	token, err := c.auth.RefreshAuthToken()
 	if err != nil {
 		return Rate{}, err
