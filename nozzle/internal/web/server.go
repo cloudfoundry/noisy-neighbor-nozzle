@@ -10,14 +10,11 @@ import (
 	"os"
 	"time"
 
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/middleware"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/store"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
-
-// CheckToken is a function that is used by the AdminAuthMiddleware to check a
-// given token
-type CheckToken func(token, scope string) bool
 
 // RateStore is the interface from which the server will get rates to be
 // rendered via HTTP in JSON.
@@ -34,7 +31,7 @@ type Server struct {
 }
 
 // NewServer opens a TCP listener and returns an initialized Server.
-func NewServer(port uint16, store RateStore, ct CheckToken, opts ...ServerOption) *Server {
+func NewServer(port uint16, store RateStore, ct middleware.CheckToken, opts ...ServerOption) *Server {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to start listener: %d", port)
@@ -50,7 +47,7 @@ func NewServer(port uint16, store RateStore, ct CheckToken, opts ...ServerOption
 	router.Handle("/state/{timestamp:[0-9]+}", StateShow(store)).
 		Methods(http.MethodGet)
 
-	authMiddleware := AdminAuthMiddleware(ct)
+	authMiddleware := middleware.AdminAuthMiddleware(ct)
 
 	s := &Server{
 		lis:       lis,

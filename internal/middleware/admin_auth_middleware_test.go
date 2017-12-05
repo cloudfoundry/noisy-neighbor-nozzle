@@ -1,10 +1,10 @@
-package web_test
+package middleware_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/web"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/middleware"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,7 +23,7 @@ var _ = Describe("AdminAuthorizer", func() {
 			stubCalled++
 		})
 		recorder := httptest.NewRecorder()
-		handler := web.AdminAuthMiddleware(checkToken)(stub)
+		handler := middleware.AdminAuthMiddleware(checkToken)(stub)
 		req := httptest.NewRequest("GET", "/", nil)
 		req.Header.Add("Authorization", "Bearer valid-token")
 
@@ -44,7 +44,7 @@ var _ = Describe("AdminAuthorizer", func() {
 			stubCalled++
 		})
 		recorder := httptest.NewRecorder()
-		handler := web.AdminAuthMiddleware(checkToken)(stub)
+		handler := middleware.AdminAuthMiddleware(checkToken)(stub)
 		req := httptest.NewRequest("GET", "/", nil)
 		req.Header.Add("Authorization", "Bearer invalid-token")
 
@@ -61,7 +61,7 @@ var _ = Describe("AdminAuthorizer", func() {
 			stubCalled++
 		})
 		recorder := httptest.NewRecorder()
-		handler := web.AdminAuthMiddleware(checkToken)(stub)
+		handler := middleware.AdminAuthMiddleware(checkToken)(stub)
 		req := httptest.NewRequest("GET", "/", nil)
 		req.Header.Add("Authorization", "Bearer")
 

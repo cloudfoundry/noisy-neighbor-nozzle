@@ -1,4 +1,4 @@
-package web
+package middleware
 
 import (
 	"net/http"
@@ -8,6 +8,10 @@ import (
 var (
 	requiredScope = "doppler.firehose"
 )
+
+// CheckToken is a function that is used by the AdminAuthMiddleware to check a
+// given token
+type CheckToken func(token, scope string) bool
 
 // AdminAuthMiddleware will return HTTP middleware that will authenticate a user
 // is authenticated and has proper permissions.
