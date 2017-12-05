@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/app"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/collector"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/datadogreporter"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/web"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/authenticator"
 )
 
@@ -20,6 +22,7 @@ func main() {
 			TLSClientConfig: cfg.TLSConfig,
 		},
 	}
+
 	auth := authenticator.NewAuthenticator(
 		cfg.ClientID,
 		cfg.ClientSecret,
@@ -27,22 +30,20 @@ func main() {
 		authenticator.WithHTTPClient(client),
 	)
 	httpStore := app.NewHTTPAppInfoStore(cfg.CAPIAddr, client, auth)
-
 	cache := app.NewCachedAppInfoStore(httpStore)
 
-	collector := app.NewCollector(
-		cfg.NozzleAddrs,
-		auth,
-		cfg.NozzleAppGUID,
-		cache,
-		app.WithReportLimit(cfg.ReportLimit),
+	log.Printf("initializing collector with nozzles: %+v", cfg.NozzleAddrs)
+	c := collector.New(cfg.NozzleAddrs, auth, cfg.NozzleAppGUID, cache,
+		collector.WithReportLimit(cfg.ReportLimit),
 	)
-	reporter := datadogreporter.New(
-		cfg.DatadogAPIKey,
-		collector,
+
+	s := web.NewServer(cfg.Port, auth.CheckToken, c)
+	go s.Serve()
+
+	log.Printf("initializing datadog reporter")
+	r := datadogreporter.New(cfg.DatadogAPIKey, c,
 		datadogreporter.WithHost(cfg.ReporterHost),
 		datadogreporter.WithInterval(cfg.ReportInterval),
 	)
-
-	reporter.Run()
+	r.Run()
 }

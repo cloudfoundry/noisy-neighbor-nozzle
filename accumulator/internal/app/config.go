@@ -16,6 +16,7 @@ type Config struct {
 	ClientSecret   string        `env:"CLIENT_SECRET,   required, noreport"`
 	NozzleAddrs    []string      `env:"NOZZLE_ADDRS,    required"`
 	DatadogAPIKey  string        `env:"DATADOG_API_KEY, required"`
+	Port           uint16        `env:"PORT,            required"`
 	SkipCertVerify bool          `env:"SKIP_CERT_VERIFY"`
 	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 	ReporterHost   string        `env:"REPORTER_HOST"`

@@ -1,4 +1,4 @@
-package app_test
+package collector_test
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"time"
 
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/app"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/collector"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/datadogreporter"
 
 	. "github.com/onsi/ginkgo"
@@ -21,7 +21,7 @@ var _ = Describe("Collector", func() {
 			testServer, requests := setupTestServer(ts1, http.StatusOK)
 			defer testServer.Close()
 
-			c := app.NewCollector(
+			c := collector.New(
 				[]string{testServer.URL},
 				&spyAuthenticator{refreshToken: "valid-token"},
 				"app-guid",
@@ -68,7 +68,7 @@ var _ = Describe("Collector", func() {
 			defer serverA.Close()
 			defer serverB.Close()
 
-			c := app.NewCollector(
+			c := collector.New(
 				[]string{serverA.URL, serverB.URL},
 				&spyAuthenticator{},
 				"app-guid",
@@ -151,12 +151,12 @@ var _ = Describe("Collector", func() {
 			defer serverA.Close()
 			defer serverB.Close()
 
-			c := app.NewCollector(
+			c := collector.New(
 				[]string{serverA.URL, serverB.URL},
 				&spyAuthenticator{},
 				"",
 				newSpyStore(),
-				app.WithReportLimit(1),
+				collector.WithReportLimit(1),
 			)
 
 			points, err := c.BuildPoints(ts1)
@@ -172,7 +172,7 @@ var _ = Describe("Collector", func() {
 			defer serverA.Close()
 			defer serverB.Close()
 
-			c := app.NewCollector(
+			c := collector.New(
 				[]string{serverA.URL, serverB.URL},
 				&spyAuthenticator{},
 				"",
@@ -196,7 +196,7 @@ var _ = Describe("Collector", func() {
 			defer serverA.Close()
 			defer serverB.Close()
 
-			c := app.NewCollector(
+			c := collector.New(
 				[]string{serverA.URL, serverB.URL},
 				&spyAuthenticator{},
 				"app-guid",
@@ -259,7 +259,7 @@ var _ = Describe("Collector", func() {
 
 	Describe("Sum", func() {
 		It("aggregates rates into a single list of rates", func() {
-			rates := []app.Rate{
+			rates := []collector.Rate{
 				{
 					Timestamp: 60,
 					Counts: map[string]uint64{
@@ -278,10 +278,10 @@ var _ = Describe("Collector", func() {
 				},
 			}
 
-			results := app.Sum(rates)
+			results := collector.Sum(rates)
 
 			Expect(results).To(Equal(
-				app.Rate{
+				collector.Rate{
 					Timestamp: 60,
 					Counts: map[string]uint64{
 						"app-1/0": 20,
