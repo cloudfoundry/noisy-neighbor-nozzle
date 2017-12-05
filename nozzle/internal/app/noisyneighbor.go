@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/authenticator"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/authenticator"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/store"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/nozzle/internal/web"
 	"github.com/cloudfoundry/noaa/consumer"

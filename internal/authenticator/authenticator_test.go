@@ -6,7 +6,8 @@ import (
 	"net/url"
 	"strings"
 
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/authenticator"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/authenticator"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
