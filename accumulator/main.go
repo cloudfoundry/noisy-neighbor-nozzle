@@ -9,7 +9,7 @@ import (
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/collector"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/datadogreporter"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/web"
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/authenticator"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/internal/authenticator"
 )
 
 func main() {
