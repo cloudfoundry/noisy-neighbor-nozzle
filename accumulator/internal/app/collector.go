@@ -125,44 +125,70 @@ func (c *Collector) rates(timestamp int64) (Rate, error) {
 		return Rate{}, err
 	}
 
-	var results []Rate
+	results := make(chan rateResult, len(c.nozzles))
+	defer close(results)
 	for i, n := range c.nozzles {
-		req, err := http.NewRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/state/%d", n, timestamp),
-			nil,
-		)
-		if err != nil {
-			return Rate{}, err
-		}
-
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-
-		if c.nozzleAppGUID != "" {
-			req.Header.Set("X-CF-APP-INSTANCE", fmt.Sprintf("%s:%d", c.nozzleAppGUID, i))
-		}
-
-		resp, err := c.httpClient.Do(req)
-		if err != nil {
-			return Rate{}, err
-		}
-
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return Rate{}, fmt.Errorf("failed to get rates, expected status code 200, got %d", resp.StatusCode)
-		}
-
-		var rate Rate
-		err = json.NewDecoder(resp.Body).Decode(&rate)
-		if err != nil {
-			return Rate{}, err
-		}
-
-		results = append(results, rate)
+		go func(idx int, addr string) {
+			rate, err := c.fetchRate(timestamp, idx, addr, token)
+			results <- rateResult{
+				rate: rate,
+				err:  err,
+			}
+		}(i, n)
 	}
 
-	return Sum(results), nil
+	var result []Rate
+	for i := 0; i < len(c.nozzles); i++ {
+		r := <-results
+
+		if r.err != nil {
+			err = r.err
+		}
+
+		result = append(result, r.rate)
+	}
+
+	if err != nil {
+		return Rate{}, err
+	}
+
+	return Sum(result), nil
+}
+
+func (c *Collector) fetchRate(timestamp int64, index int, addr, token string) (Rate, error) {
+	req, err := http.NewRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/state/%d", addr, timestamp),
+		nil,
+	)
+	if err != nil {
+		return Rate{}, err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	if c.nozzleAppGUID != "" {
+		req.Header.Set("X-CF-APP-INSTANCE", fmt.Sprintf("%s:%d", c.nozzleAppGUID, index))
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return Rate{}, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return Rate{}, fmt.Errorf("failed to get rates, expected status code 200, got %d", resp.StatusCode)
+	}
+
+	var rate Rate
+	err = json.NewDecoder(resp.Body).Decode(&rate)
+	if err != nil {
+		return Rate{}, err
+	}
+
+	return rate, nil
 }
 
 // CollectorOption is a type of func that can be used for optional configuration
@@ -194,4 +220,9 @@ func Sum(r []Rate) Rate {
 		Timestamp: timestamp,
 		Counts:    interim,
 	}
+}
+
+type rateResult struct {
+	rate Rate
+	err  error
 }
