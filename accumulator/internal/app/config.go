@@ -34,7 +34,7 @@ type Config struct {
 func LoadConfig() Config {
 	cfg := Config{
 		ReportInterval: time.Minute,
-		ReportLimit:    250,
+		ReportLimit:    50,
 		SkipCertVerify: false,
 	}
 
