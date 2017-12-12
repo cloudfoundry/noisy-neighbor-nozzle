@@ -37,7 +37,7 @@ func main() {
 		collector.WithReportLimit(cfg.ReportLimit),
 	)
 
-	s := web.NewServer(cfg.Port, auth.CheckToken, c)
+	s := web.NewServer(cfg.Port, auth.CheckToken, c, web.WithLogWriter(cfg.LogWriter))
 	go s.Serve()
 
 	log.Printf("initializing datadog reporter")

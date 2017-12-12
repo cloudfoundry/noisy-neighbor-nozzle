@@ -2,7 +2,10 @@ package app
 
 import (
 	"crypto/tls"
+	"io"
+	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
 	envstruct "code.cloudfoundry.org/go-envstruct"
@@ -28,6 +31,7 @@ type Config struct {
 	VCapApplication string `env:"VCAP_APPLICATION"`
 	NozzleCount     int    `env:"NOZZLE_COUNT"`
 	NozzleAppGUID   string `env:"NOZZLE_APP_GUID"`
+	LogWriter       io.Writer
 
 	TLSConfig *tls.Config
 }
@@ -38,6 +42,7 @@ func LoadConfig() Config {
 		ReportInterval: time.Minute,
 		ReportLimit:    50,
 		SkipCertVerify: false,
+		LogWriter:      os.Stdout,
 	}
 
 	if err := envstruct.Load(&cfg); err != nil {
@@ -48,6 +53,8 @@ func LoadConfig() Config {
 	// configuration and update NozzleAddrs to have same number of addresses as
 	// NozzleCount.
 	if cfg.VCapApplication != "" {
+		cfg.LogWriter = ioutil.Discard
+
 		if cfg.NozzleCount == 0 {
 			log.Fatalf("failed to load config: NOZZLE_COUNT must not be 0 when deployed as CF application")
 		}
