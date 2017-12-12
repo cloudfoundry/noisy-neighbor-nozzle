@@ -121,7 +121,6 @@ var _ = Describe("Collector", func() {
 					Points: [][]int64{[]int64{ts1, 1186}},
 					Type:   "gauge",
 					Tags: []string{
-						"application.instance:app-1/0",
 						"application.instance:my-org.my-space.my-app/0",
 					},
 				},
@@ -130,7 +129,6 @@ var _ = Describe("Collector", func() {
 					Points: [][]int64{[]int64{ts1, 966}},
 					Type:   "gauge",
 					Tags: []string{
-						"application.instance:app-1/1",
 						"application.instance:my-org.my-space.my-app/1",
 					},
 				},
@@ -235,7 +233,6 @@ var _ = Describe("Collector", func() {
 					Points: [][]int64{[]int64{ts1, 1186}},
 					Type:   "gauge",
 					Tags: []string{
-						"application.instance:app-1/0",
 						"application.instance:my-org.my-space.my-app/0",
 					},
 				},
@@ -244,7 +241,6 @@ var _ = Describe("Collector", func() {
 					Points: [][]int64{[]int64{ts1, 966}},
 					Type:   "gauge",
 					Tags: []string{
-						"application.instance:app-1/1",
 						"application.instance:my-org.my-space.my-app/1",
 					},
 				},

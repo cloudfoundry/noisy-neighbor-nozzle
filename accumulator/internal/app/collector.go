@@ -98,10 +98,9 @@ func (c *Collector) BuildPoints(timestamp int64) ([]datadogreporter.Point, error
 		gi := GUIDIndex(instance)
 		orgSpaceAppName, ok := appInfo[AppGUID(gi.GUID())]
 		if ok {
-			tags = append(
-				tags,
+			tags = []string{
 				fmt.Sprintf("application.instance:%s/%s", orgSpaceAppName, gi.Index()),
-			)
+			}
 		}
 		ddPoints = append(ddPoints, datadogreporter.Point{
 			Metric: "application.ingress",
