@@ -2,7 +2,10 @@ package app
 
 import (
 	"crypto/tls"
+	"io"
+	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
 	envstruct "code.cloudfoundry.org/go-envstruct"
@@ -20,7 +23,11 @@ type Config struct {
 	BufferSize      int           `env:"BUFFER_SIZE"`
 	PollingInterval time.Duration `env:"POLLING_INTERVAL"`
 	MaxRateBuckets  int           `env:"MAX_RATE_BUCKETS"`
+	// VCapApplication is used to detect whether or not the application is
+	// deployed as a CF application.
+	VCapApplication string `env:"VCAP_APPLICATION"`
 	TLSConfig       *tls.Config
+	LogWriter       io.Writer
 }
 
 // LoadConfig loads the Config from the environment
@@ -30,10 +37,15 @@ func LoadConfig() Config {
 		BufferSize:      10000,
 		PollingInterval: time.Minute,
 		MaxRateBuckets:  60,
+		LogWriter:       os.Stdout,
 	}
 
 	if err := envstruct.Load(&cfg); err != nil {
 		log.Fatalf("failed to load config from environment: %s", err)
+	}
+
+	if cfg.VCapApplication != "" {
+		cfg.LogWriter = ioutil.Discard
 	}
 
 	cfg.TLSConfig = &tls.Config{InsecureSkipVerify: cfg.SkipCertVerify}

@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -18,7 +19,7 @@ import (
 )
 
 var _ = Describe("Nozzle", func() {
-	It("serves an HTTP endpoint with the noisiest applications", func() {
+	It("serves an HTTP endpoint", func() {
 		uaa := newSpyUAA()
 		defer uaa.stop()
 
@@ -29,6 +30,7 @@ var _ = Describe("Nozzle", func() {
 			PollingInterval: 100 * time.Millisecond,
 			MaxRateBuckets:  10,
 			UAAAddr:         uaa.server.URL,
+			LogWriter:       ioutil.Discard,
 		}
 		nn := app.New(cfg)
 		Expect(uaa.tokenCalled()).To(Equal(int64(1)))

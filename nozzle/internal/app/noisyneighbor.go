@@ -54,7 +54,7 @@ func New(cfg Config) *NoisyNeighbor {
 		store.WithPollingInterval(cfg.PollingInterval),
 		store.WithMaxRateBuckets(cfg.MaxRateBuckets),
 	)
-	s := web.NewServer(cfg.Port, a, auth.CheckToken)
+	s := web.NewServer(cfg.Port, a, auth.CheckToken, web.WithLogWriter(cfg.LogWriter))
 
 	return &NoisyNeighbor{
 		cfg:        cfg,
