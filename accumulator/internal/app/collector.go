@@ -28,6 +28,11 @@ type Authenticator interface {
 	RefreshAuthToken() (string, error)
 }
 
+// AppInfoStore provides a way to find AppInfo for an app GUID.
+type AppInfoStore interface {
+	Lookup(guids []string) (map[AppGUID]AppInfo, error)
+}
+
 // Collector handles fetch rates form multiple nozzles and summing their
 // rates.
 type Collector struct {
@@ -36,6 +41,7 @@ type Collector struct {
 	httpClient    *http.Client
 	reportLimit   int
 	nozzleAppGUID string
+	store         AppInfoStore
 }
 
 // NewCollector initializes and returns a new Collector.
@@ -43,6 +49,7 @@ func NewCollector(
 	nozzles []string,
 	auth Authenticator,
 	nozzleAppGUID string,
+	store AppInfoStore,
 	opts ...CollectorOption,
 ) *Collector {
 	c := &Collector{
@@ -56,6 +63,7 @@ func NewCollector(
 		},
 		reportLimit:   250,
 		nozzleAppGUID: nozzleAppGUID,
+		store:         store,
 	}
 
 	for _, o := range opts {
@@ -73,15 +81,33 @@ func (c *Collector) BuildPoints(timestamp int64) ([]datadogreporter.Point, error
 		return nil, err
 	}
 
+	var guids []string
+	for k, _ := range rate.Counts {
+		g := GUIDIndex(k).GUID()
+		guids = append(guids, g)
+	}
+	// The underlying cached store does not return an error and instead simply
+	// returns the cache when an error occurs.
+	appInfo, _ := c.store.Lookup(guids)
+
 	ddPoints := make([]datadogreporter.Point, 0, len(rate.Counts))
 	for instance, count := range rate.Counts {
+		tags := []string{
+			fmt.Sprintf("application.instance:%s", GUIDIndex(instance)),
+		}
+		gi := GUIDIndex(instance)
+		orgSpaceAppName, ok := appInfo[AppGUID(gi.GUID())]
+		if ok {
+			tags = append(
+				tags,
+				fmt.Sprintf("application.instance:%s/%s", orgSpaceAppName, gi.Index()),
+			)
+		}
 		ddPoints = append(ddPoints, datadogreporter.Point{
 			Metric: "application.ingress",
 			Points: [][]int64{[]int64{rate.Timestamp, int64(count)}},
 			Type:   "gauge",
-			Tags: []string{
-				fmt.Sprintf("application.instance:%s", instance),
-			},
+			Tags:   tags,
 		})
 	}
 

@@ -11,6 +11,7 @@ import (
 // Config stores configuration data for the accumulator.
 type Config struct {
 	UAAAddr        string        `env:"UAA_ADDR,        required"`
+	CAPIAddr       string        `env:"CAPI_ADDR,       required"`
 	ClientID       string        `env:"CLIENT_ID,       required"`
 	ClientSecret   string        `env:"CLIENT_SECRET,   required, noreport"`
 	NozzleAddrs    []string      `env:"NOZZLE_ADDRS,    required"`

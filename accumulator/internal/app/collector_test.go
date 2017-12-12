@@ -23,13 +23,14 @@ var _ = Describe("Collector", func() {
 
 			c := app.NewCollector(
 				[]string{testServer.URL},
-				&spyAuthenticator{},
+				&spyAuthenticator{refreshToken: "valid-token"},
 				"app-guid",
+				newSpyStore(),
 			)
 
 			points, err := c.BuildPoints(ts1)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(points).To(HaveLen(2))
+			Expect(points).To(HaveLen(3))
 
 			var request request
 			Expect(requests).To(Receive(&request))
@@ -37,18 +38,25 @@ var _ = Describe("Collector", func() {
 			Expect(request.headers.Get("Authorization")).To(Equal("Bearer valid-token"))
 			Expect(request.headers.Get("X-CF-APP-INSTANCE")).To(Equal("app-guid:0"))
 
-			point := findPointWithTag("application.instance:app-1/0", points)
+			point := findPointWithTag("application.instance:my-org.my-space.my-app/0", points)
 			Expect(point).ToNot(BeZero())
 			Expect(point.Metric).To(Equal("application.ingress"))
 			Expect(point.Points).To(Equal([][]int64{
 				[]int64{ts1, 1186},
 			}))
 
-			point = findPointWithTag("application.instance:app-1/1", points)
+			point = findPointWithTag("application.instance:my-org.my-space.my-app/1", points)
 			Expect(point).ToNot(BeZero())
 			Expect(point.Metric).To(Equal("application.ingress"))
 			Expect(point.Points).To(Equal([][]int64{
 				[]int64{ts1, 966},
+			}))
+
+			point = findPointWithTag("application.instance:app-2/0", points)
+			Expect(point).ToNot(BeZero())
+			Expect(point.Metric).To(Equal("application.ingress"))
+			Expect(point.Points).To(Equal([][]int64{
+				[]int64{ts1, 1234},
 			}))
 		})
 
@@ -64,6 +72,7 @@ var _ = Describe("Collector", func() {
 				[]string{serverA.URL, serverB.URL},
 				&spyAuthenticator{},
 				"app-guid",
+				newSpyStore(),
 			)
 
 			points, err := c.BuildPoints(ts1)
@@ -75,19 +84,65 @@ var _ = Describe("Collector", func() {
 			Expect(requestsB).To(Receive(&request))
 			Expect(request.headers.Get("X-CF-APP-INSTANCE")).To(Equal("app-guid:1"))
 
-			point := findPointWithTag("application.instance:app-1/0", points)
+			point := findPointWithTag("application.instance:my-org.my-space.my-app/0", points)
 			Expect(point).ToNot(BeZero())
 			Expect(point.Metric).To(Equal("application.ingress"))
 			Expect(point.Points).To(Equal([][]int64{
 				[]int64{ts1, 2372},
 			}))
 
-			point = findPointWithTag("application.instance:app-1/1", points)
+			point = findPointWithTag("application.instance:my-org.my-space.my-app/1", points)
 			Expect(point).ToNot(BeZero())
 			Expect(point.Metric).To(Equal("application.ingress"))
 			Expect(point.Points).To(Equal([][]int64{
 				[]int64{ts1, 1932},
 			}))
+		})
+
+		It("looks up app info based off of GUID/instance", func() {
+			ts1 := time.Now().Add(time.Minute).Unix()
+			server, _ := setupTestServer(ts1, http.StatusOK)
+
+			spyStore := newSpyStore()
+			c := app.NewCollector(
+				[]string{server.URL},
+				&spyAuthenticator{},
+				"app-guid",
+				spyStore,
+			)
+			points, err := c.BuildPoints(ts1)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(spyStore.lookupGuids).To(ContainElement("app-1"))
+
+			Expect(points).To(ConsistOf(
+				datadogreporter.Point{
+					Metric: "application.ingress",
+					Points: [][]int64{[]int64{ts1, 1186}},
+					Type:   "gauge",
+					Tags: []string{
+						"application.instance:app-1/0",
+						"application.instance:my-org.my-space.my-app/0",
+					},
+				},
+				datadogreporter.Point{
+					Metric: "application.ingress",
+					Points: [][]int64{[]int64{ts1, 966}},
+					Type:   "gauge",
+					Tags: []string{
+						"application.instance:app-1/1",
+						"application.instance:my-org.my-space.my-app/1",
+					},
+				},
+				datadogreporter.Point{
+					Metric: "application.ingress",
+					Points: [][]int64{[]int64{ts1, 1234}},
+					Type:   "gauge",
+					Tags: []string{
+						"application.instance:app-2/0",
+					},
+				},
+			))
 		})
 
 		It("limits the number of points returned", func() {
@@ -102,23 +157,13 @@ var _ = Describe("Collector", func() {
 				[]string{serverA.URL, serverB.URL},
 				&spyAuthenticator{},
 				"",
+				newSpyStore(),
 				app.WithReportLimit(1),
 			)
 
 			points, err := c.BuildPoints(ts1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(points).To(HaveLen(1))
-
-			Expect(points).To(Equal([]datadogreporter.Point{
-				{
-					Metric: "application.ingress",
-					Points: [][]int64{[]int64{ts1, 2372}},
-					Type:   "gauge",
-					Tags: []string{
-						"application.instance:app-1/0",
-					},
-				},
-			}))
 		})
 
 		It("does not send X-CF-APP-INSTANCE header if nozzle app guid is empty", func() {
@@ -133,6 +178,7 @@ var _ = Describe("Collector", func() {
 				[]string{serverA.URL, serverB.URL},
 				&spyAuthenticator{},
 				"",
+				newSpyStore(),
 			)
 
 			_, err := c.BuildPoints(ts1)
@@ -156,10 +202,62 @@ var _ = Describe("Collector", func() {
 				[]string{serverA.URL, serverB.URL},
 				&spyAuthenticator{},
 				"app-guid",
+				newSpyStore(),
 			)
 
 			_, err := c.BuildPoints(ts1)
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("sends the GUID/instance-index even when looking up app info fails", func() {
+			ts1 := time.Now().Add(time.Minute).Unix()
+			server, _ := setupTestServer(ts1, http.StatusOK)
+
+			spyStore := newSpyStore()
+			spyStore.lookupGuidsReturns = map[app.AppGUID]app.AppInfo{
+				"app-1": app.AppInfo{
+					Org:   "my-org",
+					Space: "my-space",
+					Name:  "my-app",
+				},
+			}
+			c := app.NewCollector(
+				[]string{server.URL},
+				&spyAuthenticator{},
+				"app-guid",
+				spyStore,
+			)
+			points, err := c.BuildPoints(ts1)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(points).To(ConsistOf(
+				datadogreporter.Point{
+					Metric: "application.ingress",
+					Points: [][]int64{[]int64{ts1, 1186}},
+					Type:   "gauge",
+					Tags: []string{
+						"application.instance:app-1/0",
+						"application.instance:my-org.my-space.my-app/0",
+					},
+				},
+				datadogreporter.Point{
+					Metric: "application.ingress",
+					Points: [][]int64{[]int64{ts1, 966}},
+					Type:   "gauge",
+					Tags: []string{
+						"application.instance:app-1/1",
+						"application.instance:my-org.my-space.my-app/1",
+					},
+				},
+				datadogreporter.Point{
+					Metric: "application.ingress",
+					Points: [][]int64{[]int64{ts1, 1234}},
+					Type:   "gauge",
+					Tags: []string{
+						// GUID Instance only
+						"application.instance:app-2/0",
+					},
+				},
+			))
 		})
 	})
 
@@ -220,7 +318,8 @@ func setupTestServer(ts1 int64, statusCode int) (*httptest.Server, chan request)
 				{
 					"counts": {
 					  "app-1/1": 966,
-					  "app-1/0": 1186
+					  "app-1/0": 1186,
+					  "app-2/0": 1234
 					},
 					"timestamp": %d
 				},
@@ -235,16 +334,46 @@ func findPointWithTag(tag string, points []datadogreporter.Point) datadogreporte
 			continue
 		}
 
-		if p.Tags[0] == tag {
-			return p
+		for _, t := range p.Tags {
+			if t == tag {
+				return p
+			}
 		}
 	}
 
 	return datadogreporter.Point{}
 }
 
-type spyAuthenticator struct{}
+type spyInfoStore struct {
+	lookupGuids        []string
+	lookupGuidsReturns map[app.AppGUID]app.AppInfo
+}
+
+func (s *spyInfoStore) Lookup(guids []string) (map[app.AppGUID]app.AppInfo, error) {
+	s.lookupGuids = guids
+	return s.lookupGuidsReturns, nil
+}
+
+func newSpyStore() *spyInfoStore {
+	return &spyInfoStore{
+		lookupGuidsReturns: map[app.AppGUID]app.AppInfo{
+			"app-1": app.AppInfo{
+				Org:   "my-org",
+				Space: "my-space",
+				Name:  "my-app",
+			},
+		},
+	}
+}
+
+type spyAuthenticator struct {
+	refreshCalled bool
+	refreshToken  string
+	refreshError  error
+}
 
 func (s *spyAuthenticator) RefreshAuthToken() (string, error) {
-	return "valid-token", nil
+	s.refreshCalled = true
+
+	return s.refreshToken, s.refreshError
 }
