@@ -20,7 +20,7 @@ var _ = Describe("Processor", func() {
 			incIDs <- id
 		}
 
-		p := app.NewProcessor(next, inc)
+		p := app.NewProcessor(next, inc, false)
 		go p.Run()
 
 		Eventually(incIDs).Should(Receive(Equal("app-id/0")))
@@ -36,10 +36,42 @@ var _ = Describe("Processor", func() {
 			incIDs <- id
 		}
 
-		p := app.NewProcessor(next, inc)
+		p := app.NewProcessor(next, inc, false)
 		go p.Run()
 
 		Consistently(incIDs).ShouldNot(Receive())
+	})
+
+	It("ignores router logs", func() {
+		next := func() *events.Envelope {
+			return rtrLogMessage
+		}
+
+		incIDs := make(chan string, 10)
+		inc := func(id string) {
+			incIDs <- id
+		}
+
+		p := app.NewProcessor(next, inc, false)
+		go p.Run()
+
+		Consistently(incIDs).ShouldNot(Receive())
+	})
+
+	It("includes router logs", func() {
+		next := func() *events.Envelope {
+			return rtrLogMessage
+		}
+
+		incIDs := make(chan string, 10)
+		inc := func(id string) {
+			incIDs <- id
+		}
+
+		p := app.NewProcessor(next, inc, true)
+		go p.Run()
+
+		Eventually(incIDs).Should(Receive(Equal("rtr-id/0")))
 	})
 })
 
@@ -49,6 +81,15 @@ var (
 		LogMessage: &events.LogMessage{
 			AppId:          proto.String("app-id"),
 			SourceInstance: proto.String("0"),
+		},
+	}
+
+	rtrLogMessage = &events.Envelope{
+		EventType: events.Envelope_LogMessage.Enum(),
+		LogMessage: &events.LogMessage{
+			AppId:          proto.String("rtr-id"),
+			SourceInstance: proto.String("0"),
+			SourceType:     proto.String("RTR"),
 		},
 	}
 

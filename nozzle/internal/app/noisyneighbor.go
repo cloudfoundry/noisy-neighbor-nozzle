@@ -61,7 +61,7 @@ func New(cfg Config) *NoisyNeighbor {
 		server:     s,
 		aggregator: a,
 		ingestor:   NewIngestor(msgs, b.Set),
-		processor:  NewProcessor(b.Next, c.Inc),
+		processor:  NewProcessor(b.Next, c.Inc, cfg.IncludeRouterLogs),
 	}
 }
 
