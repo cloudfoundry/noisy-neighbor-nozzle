@@ -13,7 +13,10 @@ type AppGUID string
 type spaceGUID string
 type orgGUID string
 
-const defaultPerPage = "5000"
+const (
+	defaultV2PerPage = "100"
+	defaultV3PerPage = "5000"
+)
 
 // HTTPClient supports HTTP requests.
 type HTTPClient interface {
@@ -102,7 +105,7 @@ func (s *HTTPAppInfoStore) lookupAppNames(guids []string, authToken string) (map
 
 	query := url.Values{
 		"guids":    {strings.Join(guids, ",")},
-		"per_page": {defaultPerPage},
+		"per_page": {defaultV3PerPage},
 	}
 	u.RawQuery = query.Encode()
 
@@ -148,7 +151,7 @@ func (s *HTTPAppInfoStore) lookupOrgs(spaceGUIDs []string, authToken string) (ma
 
 	query := url.Values{
 		"q":                {fmt.Sprintf("space_guid IN %s", strings.Join(spaceGUIDs, ","))},
-		"results-per-page": {defaultPerPage},
+		"results-per-page": {defaultV2PerPage},
 	}
 
 	u.RawQuery = query.Encode()
@@ -194,7 +197,7 @@ func (s *HTTPAppInfoStore) lookupSpaces(orgGUIDs []string, authToken string) (ma
 
 	query := url.Values{
 		"organization_guids": {strings.Join(orgGUIDs, ",")},
-		"per_page":           {defaultPerPage},
+		"per_page":           {defaultV3PerPage},
 	}
 	u.RawQuery = query.Encode()
 

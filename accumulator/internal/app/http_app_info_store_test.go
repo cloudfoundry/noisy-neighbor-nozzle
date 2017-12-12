@@ -52,7 +52,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 			Equal("space_guid IN e,f"),
 			Equal("space_guid IN f,e"),
 		))
-		Expect(req.URL.Query().Get("results-per-page")).To(Equal("5000"))
+		Expect(req.URL.Query().Get("results-per-page")).To(Equal("100"))
 
 		req = client.requests[2]
 		Expect(req.URL.Host).To(Equal("api.addr.com"))
