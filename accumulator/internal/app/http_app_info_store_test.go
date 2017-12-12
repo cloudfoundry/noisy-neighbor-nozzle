@@ -49,8 +49,8 @@ var _ = Describe("HTTPAppInfoStore", func() {
 		Expect(req.URL.Host).To(Equal("api.addr.com"))
 		Expect(req.URL.Path).To(Equal("/v2/organizations"))
 		Expect(req.URL.Query().Get("q")).To(Or(
-			Equal("space_guids IN e,f"),
-			Equal("space_guids IN f,e"),
+			Equal("space_guid IN e,f"),
+			Equal("space_guid IN f,e"),
 		))
 		Expect(req.URL.Query().Get("results-per-page")).To(Equal("5000"))
 

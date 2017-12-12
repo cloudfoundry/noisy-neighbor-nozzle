@@ -147,7 +147,7 @@ func (s *HTTPAppInfoStore) lookupOrgs(spaceGUIDs []string, authToken string) (ma
 	}
 
 	query := url.Values{
-		"q":                {fmt.Sprintf("space_guids IN %s", strings.Join(spaceGUIDs, ","))},
+		"q":                {fmt.Sprintf("space_guid IN %s", strings.Join(spaceGUIDs, ","))},
 		"results-per-page": {defaultPerPage},
 	}
 
