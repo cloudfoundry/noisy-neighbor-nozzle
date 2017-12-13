@@ -32,11 +32,7 @@ var _ = Describe("Server", func() {
 				req.Header.Add("Authorization", "Bearer some-token")
 
 				resp, err = http.DefaultClient.Do(req)
-				if err != nil {
-					return err
-				}
-
-				return nil
+				return err
 			}).Should(Succeed())
 			defer resp.Body.Close()
 
@@ -81,11 +77,7 @@ var _ = Describe("Server", func() {
 				req.Header.Add("Authorization", "Bearer bad-token")
 
 				resp, err = http.DefaultClient.Do(req)
-				if err != nil {
-					return err
-				}
-
-				return nil
+				return err
 			}).Should(Succeed())
 			defer resp.Body.Close()
 
@@ -110,11 +102,7 @@ var _ = Describe("Server", func() {
 				req.Header.Add("Authorization", "Bearer some-token")
 
 				resp, err = http.DefaultClient.Do(req)
-				if err != nil {
-					return err
-				}
-
-				return nil
+				return err
 			}).Should(Succeed())
 			defer resp.Body.Close()
 
@@ -137,11 +125,7 @@ var _ = Describe("Server", func() {
 				req.Header.Add("Authorization", "Bearer bad-token")
 
 				resp, err = http.DefaultClient.Do(req)
-				if err != nil {
-					return err
-				}
-
-				return nil
+				return err
 			}).Should(Succeed())
 			defer resp.Body.Close()
 

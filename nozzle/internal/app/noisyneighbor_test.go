@@ -24,6 +24,8 @@ var _ = Describe("Nozzle", func() {
 		defer uaa.stop()
 
 		loggregator := newFakeLoggregator(testEnvelopes)
+		defer loggregator.stop()
+
 		cfg := app.Config{
 			LoggregatorAddr: strings.Replace(loggregator.server.URL, "http", "ws", -1),
 			BufferSize:      1000,
@@ -44,6 +46,8 @@ var _ = Describe("Nozzle", func() {
 				fmt.Sprintf("http://%s/state", nn.Addr()),
 				nil,
 			)
+			Expect(err).ToNot(HaveOccurred())
+
 			req.Header.Add("Authorization", "Bearer some-token")
 
 			_, err = http.DefaultClient.Do(req)

@@ -62,28 +62,30 @@ func (r *DatadogReporter) Run() {
 
 	ticker := time.NewTicker(r.interval)
 	for range ticker.C {
-		log.Println("datadog reporter ticked")
+		func() {
+			log.Println("datadog reporter ticked")
 
-		body, err := r.buildRequestBody()
-		if err != nil {
-			log.Printf("failed to build request body for datadog: %s", err)
-			continue
-		}
+			body, err := r.buildRequestBody()
+			if err != nil {
+				log.Printf("failed to build request body for datadog: %s", err)
+				return
+			}
 
-		response, err := r.httpClient.Post(dURL.String(), "application/json", body)
-		if err != nil {
-			log.Printf("failed to post to datadog: %s", err)
-			continue
-		}
-		defer response.Body.Close()
+			response, err := r.httpClient.Post(dURL.String(), "application/json", body)
+			if err != nil {
+				log.Printf("failed to post to datadog: %s", err)
+				return
+			}
+			defer response.Body.Close()
 
-		if response.StatusCode > 299 || response.StatusCode < 200 {
-			respBody, _ := ioutil.ReadAll(response.Body)
+			if response.StatusCode > 299 || response.StatusCode < 200 {
+				respBody, _ := ioutil.ReadAll(response.Body)
 
-			log.Printf("Expected successful status code from Datadog, got %d", response.StatusCode)
-			log.Printf("Response: %s", respBody)
-			continue
-		}
+				log.Printf("Expected successful status code from Datadog, got %d", response.StatusCode)
+				log.Printf("Response: %s", respBody)
+				return
+			}
+		}()
 	}
 }
 

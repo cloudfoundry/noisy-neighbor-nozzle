@@ -34,7 +34,7 @@ func NewProcessor(n Next, i Inc, includeRouterLogs bool) *Processor {
 
 // Run will read events.Envelopes from the processors next func and increment
 // the counter for the Envelopes source instance. This is a blocking method that
-// will run indefinately.
+// will run indefinitely.
 func (p *Processor) Run() {
 	for {
 		e := p.next()

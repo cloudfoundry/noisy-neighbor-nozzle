@@ -44,7 +44,7 @@ func NewAggregator(c RateCounter, opts ...AggregatorOption) *Aggregator {
 	return a
 }
 
-// Run starts the aggregator. This method will block indefinately.
+// Run starts the aggregator. This method will block indefinitely.
 func (a *Aggregator) Run() {
 	for {
 		now := time.Now()

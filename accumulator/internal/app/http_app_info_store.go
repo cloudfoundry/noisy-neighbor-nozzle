@@ -82,7 +82,7 @@ func (s *HTTPAppInfoStore) Lookup(guids []string) (map[AppGUID]AppInfo, error) {
 	for k, v := range appSpaces {
 		space := spaces[spaceGUID(v.spaceGUID)]
 		org := orgs[orgGUID(space.orgGUID)]
-		res[AppGUID(k)] = AppInfo{
+		res[k] = AppInfo{
 			Name:  v.name,
 			Space: space.name,
 			Org:   org.name,
@@ -90,11 +90,6 @@ func (s *HTTPAppInfoStore) Lookup(guids []string) (map[AppGUID]AppInfo, error) {
 	}
 
 	return res, nil
-}
-
-// String implements the Stringer interface.
-func (a AppInfo) String() string {
-	return fmt.Sprintf("%s.%s.%s", a.Org, a.Space, a.Name)
 }
 
 func (s *HTTPAppInfoStore) lookupAppNames(guids []string, authToken string) (map[AppGUID]app, error) {
@@ -232,6 +227,18 @@ func (s *HTTPAppInfoStore) lookupSpaces(orgGUIDs []string, authToken string) (ma
 	return spaces, nil
 }
 
+// AppInfo holds the names of an application, space, and organization.
+type AppInfo struct {
+	Name  string
+	Space string
+	Org   string
+}
+
+// String implements the Stringer interface.
+func (a AppInfo) String() string {
+	return fmt.Sprintf("%s.%s.%s", a.Org, a.Space, a.Name)
+}
+
 // V3Resource represents application data returned from the Cloud Controller
 // API.
 type V3Resource struct {
@@ -240,21 +247,24 @@ type V3Resource struct {
 	Relationships map[string]V3Relationship `json:"relationships"`
 }
 
-// V3Response represents a list of applications and associated data.
+// V3Response represents a list of V3 API resources and associated data.
 type V3Response struct {
 	Resources []V3Resource `json:"resources"`
 }
 
+// V3Relationship represents a V3 API resource relationship.
 type V3Relationship struct {
 	Data struct {
 		GUID string `json:"guid"`
 	} `json:"data"`
 }
 
+// V2Response represents a list of V2 API resources.
 type V2Response struct {
 	Resources []V2Resource `json:"resources"`
 }
 
+// V2Resource represents a single V2 API resource
 type V2Resource struct {
 	Metadata struct {
 		GUID string `json:"guid"`
@@ -280,11 +290,4 @@ type app struct {
 	guid      string
 	name      string
 	spaceGUID string
-}
-
-// AppInfo holds the names of an application, space, and organization.
-type AppInfo struct {
-	Name  string
-	Space string
-	Org   string
 }

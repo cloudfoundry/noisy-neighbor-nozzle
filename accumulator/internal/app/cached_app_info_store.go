@@ -26,10 +26,12 @@ func NewCachedAppInfoStore(s AppInfoStore) *CachedAppInfoStore {
 // some-guid/some-index, e.g., 7b8228a0-cf40-42d8-a7bb-b287a88198a3/0
 type GUIDIndex string
 
+// GUID returns the GUID of the GUIDIndex
 func (g GUIDIndex) GUID() string {
 	return strings.Split(string(g), "/")[0]
 }
 
+// Index returns the Index of the GUIDIndex
 func (g GUIDIndex) Index() string {
 	parts := strings.Split(string(g), "/")
 	if len(parts) < 2 {

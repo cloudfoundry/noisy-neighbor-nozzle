@@ -82,7 +82,7 @@ func (c *Collector) BuildPoints(timestamp int64) ([]datadogreporter.Point, error
 	}
 
 	var guids []string
-	for k, _ := range rate.Counts {
+	for k := range rate.Counts {
 		g := GUIDIndex(k).GUID()
 		guids = append(guids, g)
 	}
@@ -175,7 +175,6 @@ func (c *Collector) fetchRate(timestamp int64, index int, addr, token string) (R
 	if err != nil {
 		return Rate{}, err
 	}
-
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
