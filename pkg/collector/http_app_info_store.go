@@ -120,12 +120,7 @@ func (s *HTTPAppInfoStore) lookupAppNames(guids []string, authToken string) (map
 	if r.StatusCode != http.StatusOK {
 		buf := bytes.NewBuffer(nil)
 		_, _ = buf.ReadFrom(r.Body)
-
-		err := fmt.Errorf("failed to get apps (%s), expected 200, URL: %s, got %d: %s",
-			request.URL.String(),
-			r.StatusCode,
-			buf.String(),
-		)
+		err := fmt.Errorf("failed to get apps, expected 200, got %d: %s", r.StatusCode, buf.String())
 
 		return nil, err
 	}
@@ -176,8 +171,9 @@ func (s *HTTPAppInfoStore) lookupOrgs(spaceGUIDs []string, authToken string) (ma
 	if r.StatusCode != http.StatusOK {
 		buf := bytes.NewBuffer(nil)
 		_, _ = buf.ReadFrom(r.Body)
+		err := fmt.Errorf("failed to get orgs, expected 200, got %d: %s", r.StatusCode, buf.String())
 
-		return nil, fmt.Errorf("failed to get orgs, expected 200, got %d: %s", r.StatusCode, buf.String())
+		return nil, err
 	}
 
 	var resp V2Response
@@ -221,8 +217,9 @@ func (s *HTTPAppInfoStore) lookupSpaces(orgGUIDs []string, authToken string) (ma
 	if r.StatusCode != http.StatusOK {
 		buf := bytes.NewBuffer(nil)
 		_, _ = buf.ReadFrom(r.Body)
+		err := fmt.Errorf("failed to get spaces, expected 200, got %d: %s", r.StatusCode, buf.String())
 
-		return nil, fmt.Errorf("failed to get spaces, expected 200, got %d: %s", r.StatusCode, buf.String())
+		return nil, err
 	}
 
 	var resp V3Response
