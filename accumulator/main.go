@@ -29,8 +29,8 @@ func main() {
 		cfg.UAAAddr,
 		authenticator.WithHTTPClient(client),
 	)
-	httpStore := app.NewHTTPAppInfoStore(cfg.CAPIAddr, client, auth)
-	cache := app.NewCachedAppInfoStore(httpStore)
+	httpStore := collector.NewHTTPAppInfoStore(cfg.CAPIAddr, client, auth)
+	cache := collector.NewCachedAppInfoStore(httpStore)
 
 	log.Printf("initializing collector with nozzles: %+v", cfg.NozzleAddrs)
 	c := collector.New(cfg.NozzleAddrs, auth, cfg.NozzleAppGUID, cache,

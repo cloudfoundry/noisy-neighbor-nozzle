@@ -7,7 +7,6 @@ import (
 	"sort"
 	"time"
 
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/app"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/datadogreporter"
 )
 
@@ -31,7 +30,7 @@ type Authenticator interface {
 
 // AppInfoStore provides a way to find AppInfo for an app GUID.
 type AppInfoStore interface {
-	Lookup(guids []string) (map[app.AppGUID]AppInfo, error)
+	Lookup(guids []string) (map[AppGUID]AppInfo, error)
 }
 
 // Collector handles fetch rates form multiple nozzles and summing their

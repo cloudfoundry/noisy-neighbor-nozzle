@@ -1,4 +1,4 @@
-package app_test
+package collector_test
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/app"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/collector"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -15,18 +15,18 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("issues GET requests to Cloud Controller for AppInfo", func() {
 		client := &fakeHTTPClient{responses: happyPath()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		actual, err := store.Lookup([]string{"a", "b"})
 
 		Expect(err).ToNot(HaveOccurred())
-		expected := map[app.AppGUID]app.AppInfo{
-			"a": app.AppInfo{
+		expected := map[collector.AppGUID]collector.AppInfo{
+			"a": collector.AppInfo{
 				Name:  "app1",
 				Space: "space1",
 				Org:   "org1",
 			},
-			"b": app.AppInfo{
+			"b": collector.AppInfo{
 				Name:  "app2",
 				Space: "space2",
 				Org:   "org2",
@@ -67,7 +67,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("acquires a token from the authenticator", func() {
 		client := &fakeHTTPClient{responses: happyPath()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		store.Lookup([]string{"a", "b"})
 
@@ -77,7 +77,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an error when the authenticator fails", func() {
 		client := &fakeHTTPClient{responses: happyPath()}
 		auth := &spyAuthenticator{refreshError: errors.New("request failed")}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		_, err := store.Lookup([]string{"a", "b"})
 
@@ -87,7 +87,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an empty map when no GUIDInstances are passed in", func() {
 		client := &fakeHTTPClient{responses: happyPath()}
 		auth := &spyAuthenticator{}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		data, _ := store.Lookup(nil)
 
@@ -99,7 +99,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an error when getting apps fails", func() {
 		client := &fakeHTTPClient{responses: appRequestFailed()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		_, err := store.Lookup([]string{"a", "b"})
 		Expect(err).To(HaveOccurred())
@@ -108,7 +108,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an error when getting orgs fails", func() {
 		client := &fakeHTTPClient{responses: orgRequestFailed()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		_, err := store.Lookup([]string{"a", "b"})
 		Expect(err).To(HaveOccurred())
@@ -117,7 +117,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an error when getting spaces fails", func() {
 		client := &fakeHTTPClient{responses: spaceRequestFailed()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		_, err := store.Lookup([]string{"a", "b"})
 		Expect(err).To(HaveOccurred())
@@ -126,7 +126,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an error when the app request is not a 200 status", func() {
 		client := &fakeHTTPClient{responses: appRequestNotOK()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		_, err := store.Lookup([]string{"a", "b"})
 		Expect(err).To(HaveOccurred())
@@ -135,7 +135,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an error when the org request is not a 200 status", func() {
 		client := &fakeHTTPClient{responses: orgRequestNotOK()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		_, err := store.Lookup([]string{"a", "b"})
 		Expect(err).To(HaveOccurred())
@@ -144,7 +144,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an error when the spaces request is not a 200 status", func() {
 		client := &fakeHTTPClient{responses: spaceRequestNotOK()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		_, err := store.Lookup([]string{"a", "b"})
 		Expect(err).To(HaveOccurred())
@@ -153,7 +153,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an error when app json unmarshalling fails", func() {
 		client := &fakeHTTPClient{responses: appRequestInvalidJSON()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		_, err := store.Lookup([]string{"a", "b"})
 		Expect(err).To(HaveOccurred())
@@ -162,7 +162,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an error when org json unmarshalling fails", func() {
 		client := &fakeHTTPClient{responses: orgRequestInvalidJSON()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		_, err := store.Lookup([]string{"a", "b"})
 		Expect(err).To(HaveOccurred())
@@ -171,7 +171,7 @@ var _ = Describe("HTTPAppInfoStore", func() {
 	It("returns an error when space json unmarshalling fails", func() {
 		client := &fakeHTTPClient{responses: spaceRequestInvalidJSON()}
 		auth := &spyAuthenticator{refreshToken: "valid-token"}
-		store := app.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
+		store := collector.NewHTTPAppInfoStore("http://api.addr.com", client, auth)
 
 		_, err := store.Lookup([]string{"a", "b"})
 		Expect(err).To(HaveOccurred())

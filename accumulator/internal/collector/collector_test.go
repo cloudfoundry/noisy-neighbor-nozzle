@@ -104,7 +104,7 @@ var _ = Describe("Collector", func() {
 			server, _ := setupTestServer(ts1, http.StatusOK)
 
 			spyStore := newSpyStore()
-			c := app.NewCollector(
+			c := collector.New(
 				[]string{server.URL},
 				&spyAuthenticator{},
 				"app-guid",
@@ -212,14 +212,14 @@ var _ = Describe("Collector", func() {
 			server, _ := setupTestServer(ts1, http.StatusOK)
 
 			spyStore := newSpyStore()
-			spyStore.lookupGuidsReturns = map[app.AppGUID]app.AppInfo{
-				"app-1": app.AppInfo{
+			spyStore.lookupGuidsReturns = map[collector.AppGUID]collector.AppInfo{
+				"app-1": collector.AppInfo{
 					Org:   "my-org",
 					Space: "my-space",
 					Name:  "my-app",
 				},
 			}
-			c := app.NewCollector(
+			c := collector.New(
 				[]string{server.URL},
 				&spyAuthenticator{},
 				"app-guid",
@@ -342,18 +342,18 @@ func findPointWithTag(tag string, points []datadogreporter.Point) datadogreporte
 
 type spyInfoStore struct {
 	lookupGuids        []string
-	lookupGuidsReturns map[app.AppGUID]app.AppInfo
+	lookupGuidsReturns map[collector.AppGUID]collector.AppInfo
 }
 
-func (s *spyInfoStore) Lookup(guids []string) (map[app.AppGUID]app.AppInfo, error) {
+func (s *spyInfoStore) Lookup(guids []string) (map[collector.AppGUID]collector.AppInfo, error) {
 	s.lookupGuids = guids
 	return s.lookupGuidsReturns, nil
 }
 
 func newSpyStore() *spyInfoStore {
 	return &spyInfoStore{
-		lookupGuidsReturns: map[app.AppGUID]app.AppInfo{
-			"app-1": app.AppInfo{
+		lookupGuidsReturns: map[collector.AppGUID]collector.AppInfo{
+			"app-1": collector.AppInfo{
 				Org:   "my-org",
 				Space: "my-space",
 				Name:  "my-app",
