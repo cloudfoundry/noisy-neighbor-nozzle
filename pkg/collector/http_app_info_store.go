@@ -121,7 +121,13 @@ func (s *HTTPAppInfoStore) lookupAppNames(guids []string, authToken string) (map
 		buf := bytes.NewBuffer(nil)
 		_, _ = buf.ReadFrom(r.Body)
 
-		return nil, fmt.Errorf("failed to get apps, expected 200, got %d: %s", r.StatusCode, buf.String())
+		err := fmt.Errorf("failed to get apps (%s), expected 200, URL: %s, got %d: %s",
+			request.URL.String(),
+			r.StatusCode,
+			buf.String(),
+		)
+
+		return nil, err
 	}
 
 	var resp V3Response
