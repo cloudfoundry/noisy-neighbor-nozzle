@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -117,7 +118,10 @@ func (s *HTTPAppInfoStore) lookupAppNames(guids []string, authToken string) (map
 	defer r.Body.Close()
 
 	if r.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get apps, expected 200, got %d", r.StatusCode)
+		buf := bytes.NewBuffer(nil)
+		_, _ = buf.ReadFrom(r.Body)
+
+		return nil, fmt.Errorf("failed to get apps, expected 200, got %d: %s", r.StatusCode, buf.String())
 	}
 
 	var resp V3Response
@@ -164,7 +168,10 @@ func (s *HTTPAppInfoStore) lookupOrgs(spaceGUIDs []string, authToken string) (ma
 	defer r.Body.Close()
 
 	if r.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get orgs, expected 200, got %d", r.StatusCode)
+		buf := bytes.NewBuffer(nil)
+		_, _ = buf.ReadFrom(r.Body)
+
+		return nil, fmt.Errorf("failed to get orgs, expected 200, got %d: %s", r.StatusCode, buf.String())
 	}
 
 	var resp V2Response
@@ -206,7 +213,10 @@ func (s *HTTPAppInfoStore) lookupSpaces(orgGUIDs []string, authToken string) (ma
 	defer r.Body.Close()
 
 	if r.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get orgs, expected 200, got %d", r.StatusCode)
+		buf := bytes.NewBuffer(nil)
+		_, _ = buf.ReadFrom(r.Body)
+
+		return nil, fmt.Errorf("failed to get spaces, expected 200, got %d: %s", r.StatusCode, buf.String())
 	}
 
 	var resp V3Response
