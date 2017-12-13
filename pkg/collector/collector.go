@@ -11,13 +11,6 @@ import (
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/pkg/store"
 )
 
-// Points is used to sort datadog Points by count
-type Points []datadog.Point
-
-func (p Points) Len() int           { return len(p) }
-func (p Points) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p Points) Less(i, j int) bool { return p[i].Points[0][1] > p[j].Points[0][1] }
-
 // Authenticator is used to refresh the authentication token.
 type Authenticator interface {
 	RefreshAuthToken() (string, error)
@@ -76,21 +69,33 @@ func (c *Collector) BuildPoints(timestamp int64) ([]datadog.Point, error) {
 		return nil, err
 	}
 
+	var top counts
+	for k, v := range rate.Counts {
+		top = append(top, count{
+			guidIndex: k,
+			value:     v,
+		})
+	}
+	sort.Sort(top)
+	if len(top) > c.reportLimit {
+		top = top[0:c.reportLimit]
+	}
+
 	var guids []string
-	for k := range rate.Counts {
-		g := GUIDIndex(k).GUID()
+	for _, c := range top {
+		g := GUIDIndex(c.guidIndex).GUID()
 		guids = append(guids, g)
 	}
 	// The underlying cached store does not return an error and instead simply
 	// returns the cache when an error occurs.
 	appInfo, _ := c.store.Lookup(guids)
 
-	ddPoints := make([]datadog.Point, 0, len(rate.Counts))
-	for instance, count := range rate.Counts {
+	var ddPoints []datadog.Point
+	for _, c := range top {
+		gi := GUIDIndex(c.guidIndex)
 		tags := []string{
-			fmt.Sprintf("application.instance:%s", GUIDIndex(instance)),
+			fmt.Sprintf("application.instance:%s", gi),
 		}
-		gi := GUIDIndex(instance)
 		orgSpaceAppName, ok := appInfo[AppGUID(gi.GUID())]
 		if ok {
 			tags = []string{
@@ -99,18 +104,13 @@ func (c *Collector) BuildPoints(timestamp int64) ([]datadog.Point, error) {
 		}
 		ddPoints = append(ddPoints, datadog.Point{
 			Metric: "application.ingress",
-			Points: [][]int64{[]int64{rate.Timestamp, int64(count)}},
+			Points: [][]int64{[]int64{rate.Timestamp, int64(c.value)}},
 			Type:   "gauge",
 			Tags:   tags,
 		})
 	}
 
-	sort.Sort(Points(ddPoints))
-	if len(ddPoints) <= c.reportLimit {
-		return ddPoints, nil
-	}
-
-	return ddPoints[0:c.reportLimit], nil
+	return ddPoints, nil
 }
 
 // Rate will collect rates from all the nozzles and sum the totals to produce a
@@ -221,3 +221,14 @@ type rateResult struct {
 	rate store.Rate
 	err  error
 }
+
+type count struct {
+	guidIndex string
+	value     uint64
+}
+
+type counts []count
+
+func (c counts) Len() int           { return len(c) }
+func (c counts) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
+func (c counts) Less(i, j int) bool { return c[i].value > c[j].value }

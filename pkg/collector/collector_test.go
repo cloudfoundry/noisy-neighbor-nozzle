@@ -146,6 +146,7 @@ var _ = Describe("Collector", func() {
 
 		It("limits the number of points returned", func() {
 			ts1 := time.Now().Add(time.Minute).Unix()
+			store := newSpyStore()
 
 			serverA, _ := setupTestServer(ts1, http.StatusOK)
 			serverB, _ := setupTestServer(ts1, http.StatusOK)
@@ -156,13 +157,14 @@ var _ = Describe("Collector", func() {
 				[]string{serverA.URL, serverB.URL},
 				&spyAuthenticator{},
 				"",
-				newSpyStore(),
+				store,
 				collector.WithReportLimit(1),
 			)
 
 			points, err := c.BuildPoints(ts1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(points).To(HaveLen(1))
+			Expect(store.lookupGuids).To(HaveLen(1))
 		})
 
 		It("does not send X-CF-APP-INSTANCE header if nozzle app guid is empty", func() {
@@ -346,11 +348,6 @@ type spyInfoStore struct {
 	lookupGuidsReturns map[collector.AppGUID]collector.AppInfo
 }
 
-func (s *spyInfoStore) Lookup(guids []string) (map[collector.AppGUID]collector.AppInfo, error) {
-	s.lookupGuids = guids
-	return s.lookupGuidsReturns, nil
-}
-
 func newSpyStore() *spyInfoStore {
 	return &spyInfoStore{
 		lookupGuidsReturns: map[collector.AppGUID]collector.AppInfo{
@@ -361,6 +358,11 @@ func newSpyStore() *spyInfoStore {
 			},
 		},
 	}
+}
+
+func (s *spyInfoStore) Lookup(guids []string) (map[collector.AppGUID]collector.AppInfo, error) {
+	s.lookupGuids = guids
+	return s.lookupGuidsReturns, nil
 }
 
 type spyAuthenticator struct {
