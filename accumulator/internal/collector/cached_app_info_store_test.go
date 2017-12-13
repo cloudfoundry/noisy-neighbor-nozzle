@@ -1,9 +1,9 @@
-package app_test
+package collector_test
 
 import (
 	"errors"
 
-	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/app"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/accumulator/internal/collector"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,15 +11,15 @@ import (
 
 var _ = Describe("CachedAppInfoStore", func() {
 	It("finds app info for a GUID by quering the API store", func() {
-		expected := map[app.AppGUID]app.AppInfo{
-			"app-guid-1": app.AppInfo{
+		expected := map[collector.AppGUID]collector.AppInfo{
+			"app-guid-1": collector.AppInfo{
 				Name:  "some-name",
 				Space: "some-space",
 				Org:   "some-org",
 			},
 		}
 		apiStore := &spyAPIStore{lookupReturns: expected}
-		store := app.NewCachedAppInfoStore(apiStore)
+		store := collector.NewCachedAppInfoStore(apiStore)
 
 		actual, _ := store.Lookup([]string{"app-guid-1"})
 
@@ -29,15 +29,15 @@ var _ = Describe("CachedAppInfoStore", func() {
 	})
 
 	It("caches app info to prevent unnecessary API calls", func() {
-		expected := map[app.AppGUID]app.AppInfo{
-			"app-guid-1": app.AppInfo{
+		expected := map[collector.AppGUID]collector.AppInfo{
+			"app-guid-1": collector.AppInfo{
 				Name:  "some-name",
 				Space: "some-space",
 				Org:   "some-org",
 			},
 		}
 		apiStore := &spyAPIStore{lookupReturns: expected}
-		store := app.NewCachedAppInfoStore(apiStore)
+		store := collector.NewCachedAppInfoStore(apiStore)
 
 		first, _ := store.Lookup([]string{"app-guid-1"})
 		second, _ := store.Lookup([]string{"app-guid-1"})
@@ -49,21 +49,21 @@ var _ = Describe("CachedAppInfoStore", func() {
 
 	It("returns the cache when the API store fails", func() {
 		apiStore := &spyAPIStore{lookupError: errors.New("HTTP request failed")}
-		store := app.NewCachedAppInfoStore(apiStore)
+		store := collector.NewCachedAppInfoStore(apiStore)
 
 		actual, err := store.Lookup([]string{"app-guid-1"})
 
 		Expect(err).NotTo(HaveOccurred())
-		emptyCache := make(map[app.AppGUID]app.AppInfo)
+		emptyCache := make(map[collector.AppGUID]collector.AppInfo)
 		Expect(actual).To(Equal(emptyCache))
 	})
 
 	// NOTE This test assumes test invocations occur with `-race`.
 	It("supports thread safe read access", func() {
 		apiStore := &spyAPIStore{
-			lookupReturns: make(map[app.AppGUID]app.AppInfo),
+			lookupReturns: make(map[collector.AppGUID]collector.AppInfo),
 		}
-		store := app.NewCachedAppInfoStore(apiStore)
+		store := collector.NewCachedAppInfoStore(apiStore)
 
 		go func() {
 			for {
@@ -76,7 +76,7 @@ var _ = Describe("CachedAppInfoStore", func() {
 
 	Describe("GUIDIndex", func() {
 		It("returns a GUID", func() {
-			g := app.GUIDIndex("12abc/0")
+			g := collector.GUIDIndex("12abc/0")
 
 			id := g.GUID()
 
@@ -84,7 +84,7 @@ var _ = Describe("CachedAppInfoStore", func() {
 		})
 
 		It("returns the entire value when no slash is present", func() {
-			g := app.GUIDIndex("12abc")
+			g := collector.GUIDIndex("12abc")
 
 			guid := g.GUID()
 
@@ -92,7 +92,7 @@ var _ = Describe("CachedAppInfoStore", func() {
 		})
 
 		It("returns an index", func() {
-			g := app.GUIDIndex("12abc/0")
+			g := collector.GUIDIndex("12abc/0")
 
 			id := g.Index()
 
@@ -100,7 +100,7 @@ var _ = Describe("CachedAppInfoStore", func() {
 		})
 
 		It("returns 0 when no index is found", func() {
-			g := app.GUIDIndex("12abc")
+			g := collector.GUIDIndex("12abc")
 
 			id := g.Index()
 
@@ -112,11 +112,11 @@ var _ = Describe("CachedAppInfoStore", func() {
 type spyAPIStore struct {
 	lookupCalled        bool
 	lookupGUIDInstances []string
-	lookupReturns       map[app.AppGUID]app.AppInfo
+	lookupReturns       map[collector.AppGUID]collector.AppInfo
 	lookupError         error
 }
 
-func (s *spyAPIStore) Lookup(guids []string) (map[app.AppGUID]app.AppInfo, error) {
+func (s *spyAPIStore) Lookup(guids []string) (map[collector.AppGUID]collector.AppInfo, error) {
 	s.lookupCalled = true
 	s.lookupGUIDInstances = guids
 	return s.lookupReturns, s.lookupError
