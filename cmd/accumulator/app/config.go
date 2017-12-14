@@ -6,24 +6,18 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"time"
 
 	envstruct "code.cloudfoundry.org/go-envstruct"
 )
 
 // Config stores configuration data for the accumulator.
 type Config struct {
-	UAAAddr        string        `env:"UAA_ADDR,        required"`
-	CAPIAddr       string        `env:"CAPI_ADDR,       required"`
-	ClientID       string        `env:"CLIENT_ID,       required"`
-	ClientSecret   string        `env:"CLIENT_SECRET,   required, noreport"`
-	NozzleAddrs    []string      `env:"NOZZLE_ADDRS,    required"`
-	DatadogAPIKey  string        `env:"DATADOG_API_KEY, required"`
-	Port           uint16        `env:"PORT,            required"`
-	SkipCertVerify bool          `env:"SKIP_CERT_VERIFY"`
-	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
-	ReporterHost   string        `env:"REPORTER_HOST"`
-	ReportLimit    int           `env:"REPORT_LIMIT"`
+	UAAAddr        string   `env:"UAA_ADDR,        required"`
+	ClientID       string   `env:"CLIENT_ID,       required"`
+	ClientSecret   string   `env:"CLIENT_SECRET,   required, noreport"`
+	NozzleAddrs    []string `env:"NOZZLE_ADDRS,    required"`
+	Port           uint16   `env:"PORT,            required"`
+	SkipCertVerify bool     `env:"SKIP_CERT_VERIFY"`
 
 	// VCapApplication is used to detect whether or not the application is
 	// deployed as a CF application. If it is the NOZZLE_COUNT and
@@ -39,8 +33,6 @@ type Config struct {
 // LoadConfig loads the configuration settings from the current environment.
 func LoadConfig() Config {
 	cfg := Config{
-		ReportInterval: time.Minute,
-		ReportLimit:    50,
 		SkipCertVerify: false,
 		LogWriter:      os.Stdout,
 	}
