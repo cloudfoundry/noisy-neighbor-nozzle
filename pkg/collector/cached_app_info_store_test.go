@@ -2,6 +2,7 @@ package collector_test
 
 import (
 	"errors"
+	"time"
 
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/pkg/collector"
 
@@ -23,7 +24,7 @@ var _ = Describe("CachedAppInfoStore", func() {
 
 		actual, _ := store.Lookup([]string{"app-guid-1"})
 
-		Expect(apiStore.lookupCalled).To(Equal(true))
+		Expect(apiStore.lookupCalled).To(Equal(1))
 		Expect(apiStore.lookupGUIDInstances).To(Equal([]string{"app-guid-1"}))
 		Expect(actual).To(Equal(expected))
 	})
@@ -42,9 +43,27 @@ var _ = Describe("CachedAppInfoStore", func() {
 		first, _ := store.Lookup([]string{"app-guid-1"})
 		second, _ := store.Lookup([]string{"app-guid-1"})
 
-		Expect(apiStore.lookupGUIDInstances).To(BeNil())
+		Expect(apiStore.lookupCalled).To(Equal(1))
 		Expect(first).To(Equal(expected))
 		Expect(second).To(Equal(expected))
+	})
+
+	It("eventually updates the cache", func() {
+		expected := map[collector.AppGUID]collector.AppInfo{
+			"app-guid-1": collector.AppInfo{
+				Name:  "some-name",
+				Space: "some-space",
+				Org:   "some-org",
+			},
+		}
+
+		apiStore := &spyAPIStore{lookupReturns: expected}
+		store := collector.NewCachedAppInfoStore(apiStore, collector.WithCacheTTL(100*time.Millisecond))
+
+		Eventually(func() int {
+			_, _ = store.Lookup([]string{"app-guid-1"})
+			return apiStore.lookupCalled
+		}).Should(BeNumerically(">", 1))
 	})
 
 	It("returns the cache when the API store fails", func() {
@@ -110,14 +129,14 @@ var _ = Describe("CachedAppInfoStore", func() {
 })
 
 type spyAPIStore struct {
-	lookupCalled        bool
+	lookupCalled        int
 	lookupGUIDInstances []string
 	lookupReturns       map[collector.AppGUID]collector.AppInfo
 	lookupError         error
 }
 
 func (s *spyAPIStore) Lookup(guids []string) (map[collector.AppGUID]collector.AppInfo, error) {
-	s.lookupCalled = true
+	s.lookupCalled++
 	s.lookupGUIDInstances = guids
 	return s.lookupReturns, s.lookupError
 }

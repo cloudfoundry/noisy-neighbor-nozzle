@@ -29,7 +29,10 @@ func NewReporter(cfg Config) *Reporter {
 	)
 
 	httpStore := collector.NewHTTPAppInfoStore(cfg.CAPIAddr, client, a)
-	cache := collector.NewCachedAppInfoStore(httpStore)
+	cache := collector.NewCachedAppInfoStore(
+		httpStore,
+		collector.WithCacheTTL(cfg.AppInfoCacheTTL),
+	)
 
 	log.Printf("initializing collector with accumulator: %+v", cfg.AccumulatorAddr)
 	c := collector.New([]string{cfg.AccumulatorAddr}, a, "", cache,

@@ -21,15 +21,18 @@ type Config struct {
 	ReporterHost    string        `env:"REPORTER_HOST"`
 	ReportLimit     int           `env:"REPORT_LIMIT"`
 
+	AppInfoCacheTTL time.Duration `env:"APP_INFO_CACHE_TTL"`
+
 	TLSConfig *tls.Config
 }
 
 // LoadConfig loads the configuration settings from the current environment.
 func LoadConfig() Config {
 	cfg := Config{
-		ReportInterval: time.Minute,
-		ReportLimit:    50,
-		SkipCertVerify: false,
+		ReportInterval:  time.Minute,
+		ReportLimit:     50,
+		SkipCertVerify:  false,
+		AppInfoCacheTTL: 150 * time.Second,
 	}
 
 	if err := envstruct.Load(&cfg); err != nil {
