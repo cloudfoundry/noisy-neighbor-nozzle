@@ -55,7 +55,13 @@ func New(cfg Config) *Nozzle {
 		store.WithPollingInterval(cfg.PollingInterval),
 		store.WithMaxRateBuckets(cfg.MaxRateBuckets),
 	)
-	s := web.NewServer(cfg.Port, authenticator.CheckToken, a, web.WithLogWriter(cfg.LogWriter))
+	s := web.NewServer(
+		cfg.Port,
+		authenticator.CheckToken,
+		a,
+		cfg.PollingInterval,
+		web.WithLogWriter(cfg.LogWriter),
+	)
 
 	return &Nozzle{
 		cfg:        cfg,

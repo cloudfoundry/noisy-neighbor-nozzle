@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/pkg/store"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/pkg/web"
@@ -15,7 +16,7 @@ import (
 var _ = Describe("Server", func() {
 	Describe("/rates/:timestamp", func() {
 		It("returns rates from the collector", func() {
-			server := web.NewServer(0, checkToken, &rateStore{},
+			server := web.NewServer(0, checkToken, &rateStore{}, time.Minute,
 				web.WithLogWriter(GinkgoWriter),
 			)
 			go server.Serve()
@@ -50,7 +51,7 @@ var _ = Describe("Server", func() {
 		})
 
 		It("returns a 401 if check token fails", func() {
-			server := web.NewServer(0, checkTokenFailure, &rateStore{},
+			server := web.NewServer(0, checkTokenFailure, &rateStore{}, time.Minute,
 				web.WithLogWriter(GinkgoWriter),
 			)
 			go server.Serve()
@@ -75,10 +76,13 @@ var _ = Describe("Server", func() {
 })
 
 type rateStore struct {
-	rateError error
+	rateError     error
+	rateTimestamp int64
 }
 
 func (f *rateStore) Rate(ts int64) (store.Rate, error) {
+	f.rateTimestamp = ts
+
 	return store.Rate{
 		Timestamp: 1234,
 		Counts: map[string]uint64{

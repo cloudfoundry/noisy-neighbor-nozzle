@@ -29,7 +29,13 @@ type Server struct {
 }
 
 // NewServer opens a TCP listener and returns an initialized Server.
-func NewServer(port uint16, ct CheckToken, rs RateStore, opts ...ServerOption) *Server {
+func NewServer(
+	port uint16,
+	ct CheckToken,
+	rs RateStore,
+	rateInterval time.Duration,
+	opts ...ServerOption,
+) *Server {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to start listener: %d", port)
@@ -39,7 +45,7 @@ func NewServer(port uint16, ct CheckToken, rs RateStore, opts ...ServerOption) *
 
 	router := mux.NewRouter()
 
-	router.Handle("/rates/{timestamp:[0-9]+}", RatesShow(rs)).
+	router.Handle("/rates/{timestamp:[0-9]+}", RatesShow(rs, rateInterval)).
 		Methods(http.MethodGet)
 
 	authMiddleware := AdminAuthMiddleware(ct)

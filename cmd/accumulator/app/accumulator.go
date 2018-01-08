@@ -32,7 +32,7 @@ func New(cfg Config) *Accumulator {
 	c := collector.New(cfg.NozzleAddrs, a, cfg.NozzleAppGUID, nil,
 		collector.WithHTTPClient(client),
 	)
-	s := web.NewServer(cfg.Port, a.CheckToken, c,
+	s := web.NewServer(cfg.Port, a.CheckToken, c, cfg.RateInterval,
 		web.WithLogWriter(cfg.LogWriter),
 	)
 
