@@ -52,7 +52,7 @@ instance.
 #### Example
 
 ```
-curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<system-domain>/rates/
+curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<system-domain>/rates/1514042640
 {
     "timestamp": 1514042640,
     "counts": {
