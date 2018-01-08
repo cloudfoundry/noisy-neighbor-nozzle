@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	envstruct "code.cloudfoundry.org/go-envstruct"
 )
@@ -18,6 +19,10 @@ type Config struct {
 	NozzleAddrs    []string `env:"NOZZLE_ADDRS,    required"`
 	Port           uint16   `env:"PORT,            required"`
 	SkipCertVerify bool     `env:"SKIP_CERT_VERIFY"`
+
+	// RateInterval is used with the rates endpoint. This should match the
+	// POLLING_INTERVAL of the nozzle.
+	RateInterval time.Duration `env:"RATE_INTERVAL"`
 
 	// VCapApplication is used to detect whether or not the application is
 	// deployed as a CF application. If it is the NOZZLE_COUNT and
@@ -34,6 +39,7 @@ type Config struct {
 func LoadConfig() Config {
 	cfg := Config{
 		SkipCertVerify: false,
+		RateInterval:   time.Minute,
 		LogWriter:      os.Stdout,
 	}
 

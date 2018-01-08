@@ -49,6 +49,12 @@ instance.
 - `timestamp` - Unix timetamp truncated to the nozzles `POLLING_INTERVAL`
   (Default is 1 minute).
 
+### Query Parameter
+
+- `truncate_timestamp` - Optional query parameter to truncate the given
+  timestamp to the by the configured `RATE_INTERVAL` (Default is 1 minute). If
+  `true` timestamp will be truncated, otherwise it will not be modified.
+
 #### Example
 
 ```
