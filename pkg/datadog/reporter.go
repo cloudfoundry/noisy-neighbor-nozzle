@@ -45,6 +45,7 @@ func NewReporter(
 	for _, o := range opts {
 		o(r)
 	}
+
 	return r
 }
 

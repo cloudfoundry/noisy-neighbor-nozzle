@@ -1,6 +1,8 @@
 package ingress
 
-import "github.com/cloudfoundry/sonde-go/events"
+import (
+	"github.com/cloudfoundry/sonde-go/events"
+)
 
 // Set is a func used by the Ingestor to write envelopes to.
 type Set func(*events.Envelope)

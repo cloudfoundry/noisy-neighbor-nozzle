@@ -37,12 +37,14 @@ func NewReporter(cfg Config) *Reporter {
 	log.Printf("initializing collector with accumulator: %+v", cfg.AccumulatorAddr)
 	c := collector.New([]string{cfg.AccumulatorAddr}, a, "", cache,
 		collector.WithReportLimit(cfg.ReportLimit),
+		collector.WithHTTPClient(client),
 	)
 
 	log.Printf("initializing datadog reporter")
 	r := datadog.NewReporter(cfg.DatadogAPIKey, c,
 		datadog.WithHost(cfg.ReporterHost),
 		datadog.WithInterval(cfg.ReportInterval),
+		datadog.WithHTTPClient(client),
 	)
 
 	return &Reporter{

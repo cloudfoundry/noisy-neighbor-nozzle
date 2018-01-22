@@ -199,6 +199,14 @@ func WithReportLimit(n int) CollectorOption {
 	}
 }
 
+// WithHTTPClient sets the the http client that the collector will use to make
+// calls to external services.
+func WithHTTPClient(client *http.Client) CollectorOption {
+	return func(c *Collector) {
+		c.httpClient = client
+	}
+}
+
 // Sum will take a slice of Rate and sum all their counts together to create a
 // single Rate.
 func Sum(r []store.Rate) store.Rate {
