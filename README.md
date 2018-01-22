@@ -76,12 +76,31 @@ and `cloud_controller.admin_read_only` authorities.
 cd cmd/nozzle
 go build
 cf push nn-nozzle -b binary_buildpack -c ./nozzle -i 4 --no-start
-cf set-env nn-nozle UAA_ADDR https://uaa.<system-domain>
-cf set-env nn-nozle CLIENT_ID <CLIENT_ID>
-cf set-env nn-nozle CLIENT_SECRET <CLIENT_SECRET>
-cf set-env nn-nozle LOGGREGATOR_ADDR https://doppler.<system-domain>
-cf set-env nn-nozle SUBSCRIPTION_ID nn-nozzle-7691798872
+cf set-env nn-nozzle UAA_ADDR https://uaa.<system-domain>
+cf set-env nn-nozzle CLIENT_ID <CLIENT_ID>
+cf set-env nn-nozzle CLIENT_SECRET <CLIENT_SECRET>
+cf set-env nn-nozzle LOGGREGATOR_ADDR wss://doppler.<system-domain>:<port>
+cf set-env nn-nozzle SUBSCRIPTION_ID nn-nozzle-7691798872
 cf start nn-nozzle
+```
+
+##### Example App Manifest
+
+```
+---
+applications:
+  - name: noisy-neighbor-nozzle
+    buildpack: binary_buildpack
+    command: ./nozzle
+    memory: 128M
+    instances: 3
+    env:
+      UAA_ADDR: https://login.bosh-lite.com
+      CLIENT_ID: noisy-neighbor-nozzle
+      CLIENT_SECRET: <secret for the client>
+      LOGGREGATOR_ADDR: "wss://doppler.bosh-lite.com:443"
+      SUBSCRIPTION_ID: nozzle-test-subscription
+      SKIP_CERT_VERIFY: false
 ```
 
 ### Deploy the Accumulator
@@ -99,6 +118,26 @@ cf set-env nn-accumulator NOZZLE_APP_GUID $(cf app nn-nozzle --guid)
 cf start nn-accumulator
 ```
 
+##### Example App Manifest
+
+```
+---
+applications:
+  - name: noisy-neighbor-accumulator
+    buildpack: binary_buildpack
+    command: ./accumulator
+    memory: 128M
+    instances: 1
+    env:
+      UAA_ADDR: https://login.bosh-lite.com
+      CLIENT_ID: noisy-neighbor-nozzle
+      CLIENT_SECRET: <secret for the client>
+      NOZZLE_ADDRS: http://nnn.bosh-lite.com
+      NOZZLE_COUNT: 3
+      NOZZLE_APP_GUID: <nozzle app guid>
+      SKIP_CERT_VERIFY: false
+```
+
 ### Deploy the Datadog Reporter (optional)
 
 ```
@@ -112,6 +151,28 @@ cf set-env nn-datadog-reporter CLIENT_ID <CLIENT_ID>
 cf set-env nn-datadog-reporter CLIENT_SECRET <CLIENT_SECRET>
 cf set-env nn-datadog-reporter DATADOG_API_KEY <DATADOG_API_KEY>
 cf start nn-datadog-reporter
+```
+
+##### Example App Manifest
+
+```
+---
+applications:
+- name: noisy-neighbor-nozzle-datadog-reporter
+  buildpack: binary_buildpack
+  command: ./datadog-reporter
+  memory: 128M
+  instances: 1
+  health-check-type: none
+  env:
+    UAA_ADDR: https://login.bosh-lite.com
+    CAPI_ADDR: https://api.bosh-lite.com
+    ACCUMULATOR_ADDR: https://nna.bosh-lite.com
+    CLIENT_ID: noisy-neighbor-nozzle
+    CLIENT_SECRET: <secret for the client>
+    DATADOG_API_KEY: <datadog API key>
+    REPORTER_HOST: bosh-lite.com
+    SKIP_CERT_VERIFY: false
 ```
 
 [bosh]:              https://bosh.io
