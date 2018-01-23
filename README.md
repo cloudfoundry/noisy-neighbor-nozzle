@@ -52,7 +52,7 @@ instance.
 #### Example
 
 ```
-curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<system-domain>/rates/1514042640
+curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<app-domain>/rates/$(date --date="-5 minutes" +%s)
 {
     "timestamp": 1514042640,
     "counts": {
@@ -70,12 +70,12 @@ Ensure your CF deployment has a [client configured][firehose-details] with the
 `doppler.firehose` scope and authority as well as the `uaa.resource`
 and `cloud_controller.admin_read_only` authorities.
 
+Download the binaries from [releases](https://github.com/cloudfoundry/noisy-neighbor-nozzle/releases), set the environment variables via the cf cli or an app manifest.
+
 ### Deploy the Nozzle
 
 ```
-cd cmd/nozzle
-go build
-cf push nn-nozzle -b binary_buildpack -c ./nozzle -i 4 --no-start
+cf push nn-nozzle -b binary_buildpack -c ./<nozzle-binary> -i 4 --no-start
 cf set-env nn-nozzle UAA_ADDR https://uaa.<system-domain>
 cf set-env nn-nozzle CLIENT_ID <CLIENT_ID>
 cf set-env nn-nozzle CLIENT_SECRET <CLIENT_SECRET>
@@ -89,9 +89,9 @@ cf start nn-nozzle
 ```
 ---
 applications:
-  - name: noisy-neighbor-nozzle
+  - name: nn-nozzle
     buildpack: binary_buildpack
-    command: ./nozzle
+    command: ./<nozzle-binary>
     memory: 128M
     instances: 3
     env:
@@ -106,9 +106,7 @@ applications:
 ### Deploy the Accumulator
 
 ```
-cd cmd/accumulator
-go build
-cf push nn-accumulator -b binary_buildpack -c ./accumulator --no-start
+cf push nn-accumulator -b binary_buildpack -c ./<accumulator-binary> --no-start
 cf set-env nn-accumulator UAA_ADDR https://uaa.<system-domain>
 cf set-env nn-accumulator CLIENT_ID <CLIENT_ID>
 cf set-env nn-accumulator CLIENT_SECRET <CLIENT_SECRET>
@@ -123,9 +121,9 @@ cf start nn-accumulator
 ```
 ---
 applications:
-  - name: noisy-neighbor-accumulator
+  - name: nn-accumulator
     buildpack: binary_buildpack
-    command: ./accumulator
+    command: ./<accumulator-binary>
     memory: 128M
     instances: 1
     env:
@@ -141,9 +139,7 @@ applications:
 ### Deploy the Datadog Reporter (optional)
 
 ```
-cd cmd/datadog-reporter
-go build
-cf push nn-datadog-reporter -b binary_buildpack -c ./accumulator --no-start --health-check-type none
+cf push nn-datadog-reporter -b binary_buildpack -c ./<reporter-binary> --no-start --health-check-type none
 cf set-env nn-datadog-reporter UAA_ADDR https://uaa.<system-domain>
 cf set-env nn-datadog-reporter CAPI_ADDR https://api.<system-domain>
 cf set-env nn-datadog-reporter ACCUMULATOR_ADDR https://nn-accumulator.<app-domain>
@@ -158,9 +154,9 @@ cf start nn-datadog-reporter
 ```
 ---
 applications:
-- name: noisy-neighbor-nozzle-datadog-reporter
+- name: nn-datadog-reporter
   buildpack: binary_buildpack
-  command: ./datadog-reporter
+  command: ./<reporter-binary>
   memory: 128M
   instances: 1
   health-check-type: none
