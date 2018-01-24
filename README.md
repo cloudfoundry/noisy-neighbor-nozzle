@@ -72,6 +72,27 @@ and `cloud_controller.admin_read_only` authorities.
 
 Download the binaries from [releases](https://github.com/cloudfoundry/noisy-neighbor-nozzle/releases), set the environment variables via the cf cli or an app manifest.
 
+### Example UAA Client
+```
+noisy-neighbor-nozzle:
+  authorities: oauth.login,doppler.firehose,uaa.resource,cloud_controller.admin_read_only
+  authorized-grant-types: client_credentials,refresh_token
+  override: true
+  scope: doppler.firehose,oauth.approvals
+  secret: <secret>
+```
+
+### Nozzle Properties
+
+| Property | Description |
+|----------|-------------|
+| `UAA_ADDR`         | The address of the Cloud Foundry deployed UAA. Normally `https://uaa.<system-domain>`. NOTE: The schema (e.g., `https`) is required. |
+| `CLIENT_ID`        | The [UAA client][uaa-user-vs-client] ID with the correct `authorities`. See [example](#example-uaa-client) UAA client. |
+| `CLIENT_SECRET`    | The corresponding `secret` for the given `CLIENT_ID`. |
+| `LOGGREGATOR_ADDR` | The address of the Cloud Foundry deployed Loggreagor. This can be discovered by looking at the `doppler_logging_endpoint` field from `cf curl v2/info`. |
+| `SUBSCRIPTION_ID`  | Any unique string that can identify the nozzle cluster for consuming from Loggregator. |
+| `SKIP_CERT_VERIFY` | Set to true if the Cloud Foundry is using self signed certs. |
+
 ### Deploy the Nozzle
 
 ```
@@ -102,6 +123,17 @@ applications:
       SUBSCRIPTION_ID: nozzle-test-subscription
       SKIP_CERT_VERIFY: false
 ```
+### Accumulator Properties
+
+| Property | Description |
+|----------|-------------|
+| `UAA_ADDR`         | The address of the Cloud Foundry deployed UAA. Normally `https://uaa.<system-domain>`. NOTE: The schema (e.g., `https`) is required. |
+| `CLIENT_ID`        | The [UAA client][uaa-user-vs-client] ID with the correct `authorities`. See [example](#example-uaa-client) UAA client. |
+| `CLIENT_SECRET`    | The corresponding `secret` for the given `CLIENT_ID`. |
+| `NOZZLE_ADDRS` | The addresses of the nozzle (e.g. `https://<nozzle-app-name>.<app-domain>`). |
+| `NOZZLE_COUNT`  | The number of noisy neighbor nozzles. Required if the nozzle is deployed via `cf push`. |
+| `NOZZLE_APP_GUID`  | The guid of the nozzle app. Required if the nozzle is deployed via `cf push`. This can be obtained by `cf app <nozzle-app-name> --guid`.|
+| `SKIP_CERT_VERIFY` | Set to true if the Cloud Foundry is using self signed certs. |
 
 ### Deploy the Accumulator
 
@@ -135,6 +167,18 @@ applications:
       NOZZLE_APP_GUID: <nozzle app guid>
       SKIP_CERT_VERIFY: false
 ```
+
+### DataDog Reporter Properties
+
+| Property | Description |
+|----------|-------------|
+| `UAA_ADDR`         | The address of the Cloud Foundry deployed UAA. Normally `https://uaa.<system-domain>`. NOTE: The schema (e.g., `https`) is required. |
+| `CAPI_ADDR`         | The address of the Cloud Foundry API. Normally `https://api.<system-domain>`. NOTE: The schema (e.g., `https`) is required. |
+| `ACCUMULATOR_ADDR` | The addresses of the accumulator (e.g. `https://<accumulator-app-name>.<app-domain>`). |
+| `CLIENT_ID`        | The [UAA client][uaa-user-vs-client] ID with the correct `authorities`. See [example](#example-uaa-client) UAA client. |
+| `CLIENT_SECRET`    | The corresponding `secret` for the given `CLIENT_ID`. |
+| `DATADOG_API_KEY` | The API Key to identify the DataDog account to send to. |
+| `SKIP_CERT_VERIFY` | Set to true if the Cloud Foundry is using self signed certs. |
 
 ### Deploy the Datadog Reporter (optional)
 
@@ -180,3 +224,4 @@ applications:
 [loggregator-slack]: https://cloudfoundry.slack.com/archives/loggregator
 [noisy-neighbor-nozzle]:         https://code.cloudfoundry.org/noisy-neighbor-nozzle
 [noisy-neighbor-nozzle-release]: https://code.cloudfoundry.org/noisy-neighbor-nozzle-release
+[uaa-user-vs-client]: https://github.com/cloudfoundry/uaa/blob/master/docs/UAA-Tokens.md#users-and-clients-and-other-actors
