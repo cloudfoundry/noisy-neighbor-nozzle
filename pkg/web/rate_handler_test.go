@@ -75,6 +75,26 @@ var _ = Describe("RateHandlers", func() {
 				Expect(w.Code).To(Equal(http.StatusOK))
 				Expect(rs.rateTimestamp).To(Equal(int64(1515426360)))
 			})
+
+			It("is case insensitive", func() {
+				rs := &rateStore{}
+				h := web.RatesShow(rs, time.Minute)
+				router := mux.NewRouter()
+				router.Handle("/rates/{timestamp}", h)
+
+				r, err := http.NewRequest(
+					http.MethodGet,
+					"/rates/1515426389?truncate_timestamp=TRUE",
+					nil,
+				)
+				Expect(err).ToNot(HaveOccurred())
+
+				w := httptest.NewRecorder()
+				router.ServeHTTP(w, r)
+
+				Expect(w.Code).To(Equal(http.StatusOK))
+				Expect(rs.rateTimestamp).To(Equal(int64(1515426360)))
+			})
 		})
 	})
 })

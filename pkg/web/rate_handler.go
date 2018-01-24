@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -24,7 +25,7 @@ func RatesShow(store RateStore, rateInterval time.Duration) http.Handler {
 			return
 		}
 
-		if r.URL.Query().Get("truncate_timestamp") == "true" {
+		if strings.ToLower(r.URL.Query().Get("truncate_timestamp")) == "true" {
 			ts := time.Unix(timestamp, 0)
 			timestamp = ts.Truncate(rateInterval).Unix()
 		}
