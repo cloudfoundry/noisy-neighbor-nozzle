@@ -58,7 +58,7 @@ instance.
 #### Example
 
 ```
-curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<app-domain>/rates/$(date --date="-5 minutes" +%s)
+curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<app-domain>/rates/$(python -c 'import time; n=time.time(); print(int(n-n%60))')
 {
     "timestamp": 1514042640,
     "counts": {
