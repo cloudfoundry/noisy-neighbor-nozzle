@@ -46,8 +46,7 @@ instance.
 
 #### Parameters
 
-- `timestamp` - Unix timetamp truncated to the nozzles `POLLING_INTERVAL`
-  (Default is 1 minute).
+- `timestamp` - Unix timetamp truncated (to the minute) to the nozzles `POLLING_INTERVAL`.
 
 ### Query Parameter
 
@@ -58,7 +57,7 @@ instance.
 #### Example
 
 ```
-curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<app-domain>/rates/$(python -c 'import time; n=time.time(); print(int(n-n%60))')
+curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<app-domain>/rates/$(python -c 'import time; n=time.time(); print(int(n-n%60)-(5*60))')
 {
     "timestamp": 1514042640,
     "counts": {
