@@ -1,0 +1,25 @@
+---
+applications:
+  - name: $NOZZLE_APP_NAME
+    buildpack: binary_buildpack
+    command: ./noisy-neighbor-nozzle
+    memory: 128M
+    instances: $NOZZLE_INSTANCES
+    env:
+      UAA_ADDR: $UAA_ADDR
+      CLIENT_ID: $CLIENT_ID
+      CLIENT_SECRET: $CLIENT_SECRET
+      LOGGREGATOR_ADDR: "$LOGGREGATOR_ADDR"
+      SKIP_CERT_VERIFY: $SKIP_CERT_VERIFY
+  - name: $ACCUMULATOR_APP_NAME
+    buildpack: binary_buildpack
+    command: ./noisy-neighbor-accumulator
+    memory: 128M
+    instances: 1
+    env:
+      UAA_ADDR: $UAA_ADDR
+      CLIENT_ID: $CLIENT_ID
+      CLIENT_SECRET: $CLIENT_SECRET
+      NOZZLE_ADDRS: http://$NOZZLE_APP_NAME.$APP_DOMAIN
+      NOZZLE_COUNT: $NOZZLE_INSTANCES
+      SKIP_CERT_VERIFY: $SKIP_CERT_VERIFY
