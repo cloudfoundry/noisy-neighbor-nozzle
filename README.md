@@ -9,7 +9,7 @@ Cloud Foundry deployed applications.
 This nozzle can be deployed via [BOSH][bosh] using the
 [Noisy Neighbor Nozzle Release][noisy-neighbor-nozzle-release] or via CF push.
 
-## How it works.
+## How it works
 
 The noisy neighbor nozzle consists of three components, nozzle, accumulator and
 datadog-reporter.
@@ -94,7 +94,7 @@ noisy-neighbor-nozzle:
 | `UAA_ADDR`         | The address of the Cloud Foundry deployed UAA. Normally `https://uaa.<system-domain>`. NOTE: The schema (e.g., `https`) is required. |
 | `CLIENT_ID`        | The [UAA client][uaa-user-vs-client] ID with the correct `authorities`. See [example](#example-uaa-client) UAA client. |
 | `CLIENT_SECRET`    | The corresponding `secret` for the given `CLIENT_ID`. |
-| `LOGGREGATOR_ADDR` | The address of the Cloud Foundry deployed Loggreagor. This can be discovered by looking at the `doppler_logging_endpoint` field from `cf curl v2/info`. |
+| `LOGGREGATOR_ADDR` | The address of the Cloud Foundry deployed Loggregator. This can be discovered by looking at the `doppler_logging_endpoint` field from `cf curl v2/info`. |
 | `SUBSCRIPTION_ID`  | Any unique string that can identify the nozzle cluster for consuming from Loggregator. |
 | `SKIP_CERT_VERIFY` | Set to true if the Cloud Foundry is using self signed certs. |
 
