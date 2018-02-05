@@ -1,16 +1,18 @@
-package main
+package manifest_test
 
 import (
 	"io/ioutil"
 
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/cmd/deployer/deploy"
+	"code.cloudfoundry.org/noisy-neighbor-nozzle/cmd/deployer/manifest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("deploying noisy neighbor via script", func() {
 	It("generates a valid manifest", func() {
-		manifestPath := WriteManifest(
-			input{
+		manifestPath := manifest.Write(
+			deploy.Input{
 				SystemDomain:       "sys-domain.com",
 				AppDomain:          "app-domain.com",
 				NozzleAppName:      "nn-nozzle",
