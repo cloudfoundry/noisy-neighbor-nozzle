@@ -11,8 +11,8 @@ This nozzle can be deployed via [BOSH][bosh] using the
 
 ## How it works
 
-The noisy neighbor nozzle consists of three components, nozzle, accumulator and
-datadog-reporter.
+The noisy neighbor nozzle consists of four components: nozzle, accumulator,
+datadog-reporter and cli-plugin.
 
 The nozzle will read logs (excluding router logs by default) from the
 Loggregator firehose keeping counts for the number of logs received for each
@@ -27,6 +27,9 @@ responding with the total rates.
 The datadog-reporter is an optional component. When deployed, it will request
 rates from the accumulator every minute and report the top 50 noisiest
 applications to [Datadog][datadog]
+
+The cli-plugin is a [CloudFoundry CLI][cf-cli] plugin that can be used to query
+the accumulator for the top 10 log producers.
 
 ## Scaling
 
@@ -220,7 +223,30 @@ applications:
     SKIP_CERT_VERIFY: false
 ```
 
+### CLI Plugin
+
+#### Install
+
+To install the CLI plugin from source run:
+
+```
+go get -u code.cloudfoundry.org/noisy-neighbor-nozzle/cli-plugin
+cf install-plugin $GOPATH/bin/cli-plugin
+```
+
+#### Usage
+
+To see the top 10 log producers by instance run:
+
+```
+cf log-noise nn-accumulator
+```
+
+If you deployed the accumulator with a different app name replace `nn-accumulator`
+with that name.
+
 [bosh]:              https://bosh.io
+[cf-cli]:            https://github.com/cloudfoundry/cli
 [datadog]:           https://datadoghq.com
 [ci-badge]:          https://loggregator.ci.cf-app.com/api/v1/pipelines/loggregator/jobs/noisy-neighbor-nozzle-bump-submodule/badge
 [ci-pipeline]:       https://loggregator.ci.cf-app.com/teams/main/pipelines/loggregator/jobs/noisy-neighbor-nozzle-bump-submodule
