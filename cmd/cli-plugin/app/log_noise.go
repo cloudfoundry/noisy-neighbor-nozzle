@@ -53,7 +53,7 @@ func LogNoise(
 	}
 
 	tw := tabwriter.NewWriter(tableWriter, 4, 2, 2, ' ', 0)
-	fmt.Fprint(tw, "count\tapp instance\n")
+	fmt.Fprint(tw, "Volume Last Minute\tApp Instance\n")
 	for _, item := range producers {
 		fmt.Fprintf(
 			tw,

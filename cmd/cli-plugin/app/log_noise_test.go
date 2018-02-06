@@ -113,17 +113,17 @@ var _ = Describe("LogNoise", func() {
 			Equal("my-token"),
 		)
 
-		Expect(tableWriter.String()).To(Equal(`count  app instance
-99999  org-1.space-1.name-1/1
-1000   org-9.space-9.name-9/0
-900    org-8.space-8.name-8/0
-800    org-7.space-7.name-7/0
-700    org-6.space-6.name-6/0
-600    org-5.space-5.name-5/0
-500    org-4.space-4.name-4/0
-400    org-3.space-3.name-3/0
-300    org-2.space-2.name-2/0
-200    org-1.space-1.name-1/0
+		Expect(tableWriter.String()).To(Equal(`Volume Last Minute  App Instance
+99999               org-1.space-1.name-1/1
+1000                org-9.space-9.name-9/0
+900                 org-8.space-8.name-8/0
+800                 org-7.space-7.name-7/0
+700                 org-6.space-6.name-6/0
+600                 org-5.space-5.name-5/0
+500                 org-4.space-4.name-4/0
+400                 org-3.space-3.name-3/0
+300                 org-2.space-2.name-2/0
+200                 org-1.space-1.name-1/0
 `))
 	})
 
