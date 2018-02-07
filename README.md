@@ -259,7 +259,7 @@ If you deployed the accumulator with a different app name replace `nn-accumulato
 with that name.
 
 [bosh]:              https://bosh.io
-[nn-releases]        https://github.com/cloudfoundry/noisy-neighbor-nozzle/releases
+[nn-releases]:        https://github.com/cloudfoundry/noisy-neighbor-nozzle/releases
 [cf-cli]:            https://github.com/cloudfoundry/cli
 [datadog]:           https://datadoghq.com
 [ci-badge]:          https://loggregator.ci.cf-app.com/api/v1/pipelines/loggregator/jobs/noisy-neighbor-nozzle-bump-submodule/badge
