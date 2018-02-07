@@ -2,7 +2,7 @@
 applications:
   - name: $NOZZLE_APP_NAME
     buildpack: binary_buildpack
-    command: ./noisy-neighbor-nozzle
+    command: ./nozzle
     memory: 128M
     instances: $NOZZLE_INSTANCES
     env:
@@ -13,7 +13,7 @@ applications:
       SKIP_CERT_VERIFY: $SKIP_CERT_VERIFY
   - name: $ACCUMULATOR_APP_NAME
     buildpack: binary_buildpack
-    command: ./noisy-neighbor-accumulator
+    command: ./accumulator
     memory: 128M
     instances: 1
     env:
