@@ -6,13 +6,15 @@ Noisy Neighbor Nozzle
 This is a Loggregator Firehose nozzle. It keeps track of the log rates for
 Cloud Foundry deployed applications.
 
-This nozzle can be deployed via [BOSH][bosh] using the
-[Noisy Neighbor Nozzle Release][noisy-neighbor-nozzle-release] or via CF push.
+This nozzle can be deployed via our `deployer` binary that is packaged in our
+[releases][nn-releases] which will CF push the nozzle and accumulator
+components, or via [BOSH][bosh] using the [Noisy Neighbor Nozzle
+Release][noisy-neighbor-nozzle-release].
 
 ## How it works
 
-The noisy neighbor nozzle consists of four components: nozzle, accumulator,
-datadog-reporter and cli-plugin.
+The noisy neighbor nozzle consists of five components: nozzle, accumulator,
+datadog-reporter, deployer, and cli-plugin.
 
 The nozzle will read logs (excluding router logs by default) from the
 Loggregator firehose keeping counts for the number of logs received for each
@@ -28,7 +30,10 @@ The datadog-reporter is an optional component. When deployed, it will request
 rates from the accumulator every minute and report the top 50 noisiest
 applications to [Datadog][datadog]
 
-The cli-plugin is a [CloudFoundry CLI][cf-cli] plugin that can be used to query
+The deployer is a tool that CF pushes the nozzle and accumulator. It requires
+the [Cloud Foundry CLI][cf-cli].
+
+The cli-plugin is a [Cloud Foundry CLI][cf-cli] plugin that can be used to query
 the accumulator for the top 10 log producers.
 
 ## Scaling
@@ -78,9 +83,11 @@ Ensure your CF deployment has a [client configured][firehose-details] with the
 `doppler.firehose` scope and authority as well as the `uaa.resource`
 and `cloud_controller.admin_read_only` authorities.
 
-Download the binaries from [releases](https://github.com/cloudfoundry/noisy-neighbor-nozzle/releases), set the environment variables via the cf cli or an app manifest.
+Download the binaries from [releases][nn-releases], and use the `deployer` or
+manually set the environment variables via the cf cli or an app manifest.
 
 ### Example UAA Client
+
 ```
 noisy-neighbor-nozzle:
   authorities: oauth.login,doppler.firehose,uaa.resource,cloud_controller.admin_read_only
@@ -89,6 +96,12 @@ noisy-neighbor-nozzle:
   scope: doppler.firehose,oauth.approvals
   secret: <secret>
 ```
+
+### Deployer
+
+To use the deployer with interactive prompts and defaults, `./deployer-<my-os>
+--interactive`. Otherwise, set all flags provided by `./deployer-<my-os>
+--help` to provide all variables required for the deploy.
 
 ### Nozzle Properties
 
@@ -246,6 +259,7 @@ If you deployed the accumulator with a different app name replace `nn-accumulato
 with that name.
 
 [bosh]:              https://bosh.io
+[nn-releases]        https://github.com/cloudfoundry/noisy-neighbor-nozzle/releases
 [cf-cli]:            https://github.com/cloudfoundry/cli
 [datadog]:           https://datadoghq.com
 [ci-badge]:          https://loggregator.ci.cf-app.com/api/v1/pipelines/loggregator/jobs/noisy-neighbor-nozzle-bump-submodule/badge
