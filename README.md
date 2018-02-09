@@ -3,8 +3,9 @@ Noisy Neighbor Nozzle
 [![CI Badge][ci-badge]][ci-pipeline]
 =====================
 
-This is a Loggregator Firehose nozzle and CLI Tool to help Operators identify
-applications producing a large amount of logs - i.e. "noise". 
+The Noisy Neighbor Nozzle is a Loggregator Firehose nozzle and 
+CLI Tool to help Operators identify applications producing a large
+amount of logs - i.e. "noise". 
 
 ## Getting Started & Authentication
 In order to properly deploy the nozzle components you'll need to create 
