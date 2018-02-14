@@ -36,7 +36,7 @@ var _ = Describe("LogNoise", func() {
 			"counts":{
 			   "app-guid-0/0":100,
 			   "app-guid-1/0":200,
-			   "app-guid-1/1":99999,
+			   "app-guid-1/1":1234567890,
 			   "app-guid-2/0":300,
 			   "app-guid-3/0":400,
 			   "app-guid-4/0":500,
@@ -113,18 +113,18 @@ var _ = Describe("LogNoise", func() {
 			Equal("my-token"),
 		)
 
-		Expect(tableWriter.String()).To(Equal(`Volume Last Minute  App Instance
-99999               org-1.space-1.name-1/1
-1000                org-9.space-9.name-9/0
-900                 org-8.space-8.name-8/0
-800                 org-7.space-7.name-7/0
-700                 org-6.space-6.name-6/0
-600                 org-5.space-5.name-5/0
-500                 org-4.space-4.name-4/0
-400                 org-3.space-3.name-3/0
-300                 org-2.space-2.name-2/0
-200                 org-1.space-1.name-1/0
-`))
+		Expect(tableWriter.String()).To(Equal("\x1b[91;0mVolume Last Minute\x1b[0m  App Instance\n" +
+			"\x1b[91;1m1,234,567,890\x1b[0m       org-1.space-1.name-1/1\n" +
+			"\x1b[91;0m1,000\x1b[0m               org-9.space-9.name-9/0\n" +
+			"\x1b[91;0m900\x1b[0m                 org-8.space-8.name-8/0\n" +
+			"\x1b[91;0m800\x1b[0m                 org-7.space-7.name-7/0\n" +
+			"\x1b[91;0m700\x1b[0m                 org-6.space-6.name-6/0\n" +
+			"\x1b[91;0m600\x1b[0m                 org-5.space-5.name-5/0\n" +
+			"\x1b[91;0m500\x1b[0m                 org-4.space-4.name-4/0\n" +
+			"\x1b[91;0m400\x1b[0m                 org-3.space-3.name-3/0\n" +
+			"\x1b[91;0m300\x1b[0m                 org-2.space-2.name-2/0\n" +
+			"\x1b[91;0m200\x1b[0m                 org-1.space-1.name-1/0\n",
+		))
 	})
 
 	It("reports a single log source with the app guid when app info lookup fails", func() {
@@ -148,9 +148,10 @@ var _ = Describe("LogNoise", func() {
 		Expect(logger.printfMessages).To(ContainElement(
 			"look up error",
 		))
-		Expect(strings.Split(tableWriter.String(), "\n")).To(
-			ContainElement(MatchRegexp("100\\s+app-guid-0\\/0")),
-		)
+		println(tableWriter.String())
+		Expect(tableWriter.String()).To(Equal("\x1b[91;0mVolume Last Minute\x1b[0m  App Instance\n" +
+			"\x1b[91;0m100\x1b[0m                 app-guid-0/0\n",
+		))
 	})
 
 	It("defaults the app name to nn-accumulator", func() {

@@ -57,12 +57,14 @@ func LogNoise(
 	}
 
 	tw := tabwriter.NewWriter(tableWriter, 4, 2, 2, ' ', 0)
-	fmt.Fprint(tw, "Volume Last Minute\tApp Instance\n")
+	// Volume Last Minute column must contain color codes because the tabwriter
+	// does not ignore the escape sequences when calculating column width.
+	fmt.Fprint(tw, "\x1b[91;0mVolume Last Minute\x1b[0m\tApp Instance\n")
 	for _, item := range producers {
 		fmt.Fprintf(
 			tw,
-			"%d\t%s\n",
-			item.count,
+			"%s\t%s\n",
+			formattedNumber(item.count),
 			formattedAppInfo(item.appID, appInfos),
 		)
 	}
@@ -159,6 +161,30 @@ func formattedAppInfo(
 		appInfo.Name,
 		appID.Index(),
 	)
+}
+
+func formattedNumber(i uint64) string {
+	str := []byte(fmt.Sprintf("%d", i))
+
+	counter := 0
+	var res []byte
+	for i := len(str) - 1; i != -1; i-- {
+		if counter == 3 {
+			res = append([]byte(","), res...)
+			counter = 0
+		}
+		res = append([]byte{str[i]}, res...)
+		counter++
+	}
+
+	if i >= 1000000 {
+		// Returns the number in red
+		return fmt.Sprintf("\x1b[91;1m%s\x1b[0m", res)
+	}
+
+	// Uses default color, however fixes issues with escape codes being
+	// calculated as part the column width.
+	return fmt.Sprintf("\x1b[91;0m%s\x1b[0m", res)
 }
 
 // Logger defines the interface for logging.
