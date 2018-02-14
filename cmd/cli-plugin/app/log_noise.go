@@ -26,11 +26,15 @@ func LogNoise(
 	tableWriter io.Writer,
 	log Logger,
 ) {
-	if len(args) != 1 {
-		log.Fatalf("Invalid number of arguments, expected 1, got %d", len(args))
+	appName := "nn-accumulator"
+
+	if len(args) == 1 {
+		appName = args[0]
 	}
 
-	appName := args[0]
+	if len(args) > 1 {
+		log.Fatalf("Invalid number of arguments, expected 0 or 1, got %d", len(args))
+	}
 
 	app, err := conn.GetApp(appName)
 	if err != nil {

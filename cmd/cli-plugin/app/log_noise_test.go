@@ -99,14 +99,14 @@ var _ = Describe("LogNoise", func() {
 	It("calls the provided accumulator app", func() {
 		app.LogNoise(
 			cli,
-			[]string{"nn-accumulator"},
+			[]string{"accumulator"},
 			httpClient,
 			appInfoStore,
 			tableWriter,
 			logger,
 		)
 
-		Expect(cli.requestedAppName).To(Equal("nn-accumulator"))
+		Expect(cli.requestedAppName).To(Equal("accumulator"))
 		url := `https:\/\/nn-accumulator\.localhost\/rates\/\d+\?truncate_timestamp=true`
 		Expect(httpClient.requestURL).To(MatchRegexp(url))
 		Expect(httpClient.requestHeaders.Get("Authorization")).To(
@@ -138,7 +138,7 @@ var _ = Describe("LogNoise", func() {
 
 		app.LogNoise(
 			cli,
-			[]string{"nn-accumulator"},
+			[]string{"accumulator"},
 			httpClient,
 			appInfoStore,
 			tableWriter,
@@ -153,11 +153,24 @@ var _ = Describe("LogNoise", func() {
 		)
 	})
 
-	It("fatally logs if no accumulator app name is given", func() {
+	It("defaults the app name to nn-accumulator", func() {
+		app.LogNoise(
+			cli,
+			[]string{},
+			httpClient,
+			appInfoStore,
+			tableWriter,
+			logger,
+		)
+
+		Expect(cli.requestedAppName).To(Equal("nn-accumulator"))
+	})
+
+	It("fatally logs if too many args are given", func() {
 		Expect(func() {
 			app.LogNoise(
 				cli,
-				[]string{},
+				[]string{"one", "two"},
 				httpClient,
 				appInfoStore,
 				tableWriter,
@@ -165,7 +178,7 @@ var _ = Describe("LogNoise", func() {
 			)
 		}).To(Panic())
 
-		Expect(logger.fatalfMessage).To(Equal("Invalid number of arguments, expected 1, got 0"))
+		Expect(logger.fatalfMessage).To(Equal("Invalid number of arguments, expected 0 or 1, got 2"))
 	})
 
 	It("fatally logs if an error occurs while getting the accumulator app", func() {
