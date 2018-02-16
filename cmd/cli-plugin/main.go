@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -53,10 +54,21 @@ func (c *LogNoiseCLI) Run(conn plugin.CliConnection, args []string) {
 	}
 }
 
+// version is set via ldflags at compile time. It should be JSON encoded
+// plugin.VersionType. If it does not unmarshal, the plugin version will be
+// left empty.
+var version string
+
 // GetMetadata provides usage information for the log-noise command
 func (c *LogNoiseCLI) GetMetadata() plugin.PluginMetadata {
+	var v plugin.VersionType
+	// Ignore the error. If this doesn't unmarshal, then we want the default
+	// VersionType.
+	_ = json.Unmarshal([]byte(version), &v)
+
 	return plugin.PluginMetadata{
-		Name: "Log Noise CLI Plugin",
+		Name:    "Log Noise CLI Plugin",
+		Version: v,
 		Commands: []plugin.Command{
 			{
 				Name: "log-noise",
