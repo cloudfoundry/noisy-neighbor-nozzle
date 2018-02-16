@@ -35,7 +35,7 @@ The easisest way to quickly check your platform for top log producers is to use
 the CLI tool. Download and install the binary for your local os using the command
 `cf install-plugin`. 
 
-To see the top 10 log producers in the last minuted run:
+To see the top 10 log producers in the last minute run:
 
 ```
 cf log-noise 
