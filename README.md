@@ -38,7 +38,7 @@ the CLI tool. Download and install the binary for your local os using the comman
 To see the top 10 log producers in the last minuted run:
 
 ```
-cf log-noise nn-accumulator
+cf log-noise 
 ```
 
 ## Integrating with the Noisy Neigbor Nozzle
