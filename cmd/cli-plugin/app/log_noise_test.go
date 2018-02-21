@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/pkg/collector"
 
@@ -107,11 +110,17 @@ var _ = Describe("LogNoise", func() {
 		)
 
 		Expect(cli.requestedAppName).To(Equal("accumulator"))
-		url := `https:\/\/nn-accumulator\.localhost\/rates\/\d+\?truncate_timestamp=true`
+		url := `https:\/\/nn-accumulator\.localhost\/rates\/(\d+)\?truncate_timestamp=true`
 		Expect(httpClient.requestURL).To(MatchRegexp(url))
 		Expect(httpClient.requestHeaders.Get("Authorization")).To(
 			Equal("my-token"),
 		)
+
+		urlRegexp := regexp.MustCompile(url)
+		parts := urlRegexp.FindStringSubmatch(httpClient.requestURL)
+		ts, err := strconv.ParseInt(parts[1], 10, 64)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ts).To(BeNumerically("~", time.Now().Add(-30*time.Second).Unix(), 1))
 
 		Expect(tableWriter.String()).To(Equal("\x1b[91;0mVolume Last Minute\x1b[0m  App Instance\n" +
 			"\x1b[91;1m1,234,567,890\x1b[0m       org-1.space-1.name-1/1\n" +

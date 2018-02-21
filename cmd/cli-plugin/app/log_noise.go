@@ -127,7 +127,7 @@ func accumulatorEndpoint(app plugin_models.GetAppModel) string {
 	return fmt.Sprintf(
 		"https://%s/rates/%d?truncate_timestamp=true",
 		appRoute,
-		time.Now().Unix(),
+		time.Now().Add(-30*time.Second).Unix(),
 	)
 }
 
