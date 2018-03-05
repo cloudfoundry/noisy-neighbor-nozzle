@@ -3,47 +3,47 @@ Noisy Neighbor Nozzle
 [![CI Badge][ci-badge]][ci-pipeline]
 =====================
 
-The Noisy Neighbor Nozzle is a Loggregator Firehose nozzle and 
+The Noisy Neighbor Nozzle is a Loggregator Firehose nozzle and
 CLI Tool to help Operators identify applications producing a large
-amount of logs - i.e. "noise". 
+amount of logs - i.e. "noise".
 
 ## Getting Started & Authentication
-In order to properly deploy the nozzle components you'll need to create 
+In order to properly deploy the nozzle components you'll need to create
 a UAA client with the apropriate permisions. This can be done by adding the
 following client to your deoployment manifest and updating your deployment.
 
 
 ```
 noisy-neighbor-nozzle:
-  authorities: oauth.login,doppler.firehose,uaa.resource,cloud_controller.admin_read_only
+  authorities: doppler.firehose,uaa.resource,cloud_controller.admin_read_only
   authorized-grant-types: client_credentials,refresh_token
   override: true
-  scope: doppler.firehose,oauth.approvals
+  scope: doppler.firehose
   secret: <secret>
 ```
 
 
 ## Deploying
-The easiest way to deploy is to use the `deployer` binary for your local OS included in 
+The easiest way to deploy is to use the `deployer` binary for your local OS included in
 our release package. If you add the flag `--interactive` you will be propted for all
-the information required to deploy the nozzle components. If you are interested in 
+the information required to deploy the nozzle components. If you are interested in
 operationalizing the deployment experience you should use the [Noisy Neighbor Nozzle
 Release][noisy-neighbor-nozzle-release].
 
 ## Using the CLI
 The easisest way to quickly check your platform for top log producers is to use
 the CLI tool. Download and install the binary for your local os using the command
-`cf install-plugin`. 
+`cf install-plugin`.
 
 To see the top 10 log producers in the last minute run:
 
 ```
-cf log-noise 
+cf log-noise
 ```
 
 ## Integrating with the Noisy Neigbor Nozzle
-The datadog-reporter is an optional component used for integrating with datadog. 
-When deployed, it will request rates from the accumulator every minute and 
+The datadog-reporter is an optional component used for integrating with datadog.
+When deployed, it will request rates from the accumulator every minute and
 report the top 50 noisiest applications to [Datadog][datadog]
 
 
