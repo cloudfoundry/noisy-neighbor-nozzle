@@ -106,8 +106,8 @@ curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<app-domain>/rates/$
 [nn-releases]:        https://github.com/cloudfoundry/noisy-neighbor-nozzle/releases
 [cf-cli]:            https://github.com/cloudfoundry/cli
 [datadog]:           https://datadoghq.com
-[ci-badge]:          https://loggregator.ci.cf-app.com/api/v1/pipelines/loggregator/jobs/noisy-neighbor-nozzle-bump-submodule/badge
-[ci-pipeline]:       https://loggregator.ci.cf-app.com/teams/main/pipelines/loggregator/jobs/noisy-neighbor-nozzle-bump-submodule
+[ci-badge]:          https://loggregator.ci.cf-app.com/api/v1/pipelines/products/jobs/noisy-neighbor-nozzle-bump-submodule/badge
+[ci-pipeline]:       https://loggregator.ci.cf-app.com/teams/main/pipelines/products/jobs/noisy-neighbor-nozzle-bump-submodule
 [slack-badge]:       https://slack.cloudfoundry.org/badge.svg
 [firehose-details]:  https://github.com/cloudfoundry/loggregator-release#consuming-the-firehose
 [loggregator-slack]: https://cloudfoundry.slack.com/archives/loggregator
