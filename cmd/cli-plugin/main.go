@@ -67,7 +67,7 @@ func (c *LogNoiseCLI) GetMetadata() plugin.PluginMetadata {
 	_ = json.Unmarshal([]byte(version), &v)
 
 	return plugin.PluginMetadata{
-		Name:    "Log Noise CLI Plugin",
+		Name:    "log-noise",
 		Version: v,
 		Commands: []plugin.Command{
 			{
