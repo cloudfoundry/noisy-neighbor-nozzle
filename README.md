@@ -89,7 +89,7 @@ instance.
 #### Example
 
 ```
-curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<app-domain>/rates/$(python -c 'import time; n=time.time(); print(int(n-n%60)-(5*60))')
+curl -H "Authorization: Bearer $AUTH_TOKEN" https://nn-accumulator.<app-domain>/rates/$(python -c 'import time; n=time.time(); print(int(n-n%60)-(5*60))')
 {
     "timestamp": 1514042640,
     "counts": {
