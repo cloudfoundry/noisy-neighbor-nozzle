@@ -25,10 +25,19 @@ noisy-neighbor-nozzle:
 
 ## Deploying
 The easiest way to deploy is to use the `deployer` binary for your local OS included in
-our release package. If you add the flag `--interactive` you will be propted for all
+our release package. If you add the flag `--interactive` you will be prompted for all
 the information required to deploy the nozzle components. If you are interested in
 operationalizing the deployment experience you should use the [Noisy Neighbor Nozzle
 Release][noisy-neighbor-nozzle-release].
+
+### Interactive deployment with the deployer tool
+1. Download the latest `noisy-neighbor.tgz` file from [releases][releases]
+1. Extract the tarball
+1. Run the binary for your operating system as follows:
+
+```
+./deployer-<my-os> --interactive
+```
 
 ## Using the CLI
 The easisest way to quickly check your platform for top log producers is to use
@@ -101,9 +110,9 @@ curl -H "Authorization: $AUTH_TOKEN" https://nn-accumulator.<app-domain>/rates/$
 }
 ```
 
-
+[releases]:          https://github.com/cloudfoundry/noisy-neighbor-nozzle/releases
 [bosh]:              https://bosh.io
-[nn-releases]:        https://github.com/cloudfoundry/noisy-neighbor-nozzle/releases
+[nn-releases]:       https://github.com/cloudfoundry/noisy-neighbor-nozzle/releases
 [cf-cli]:            https://github.com/cloudfoundry/cli
 [datadog]:           https://datadoghq.com
 [ci-badge]:          https://loggregator.ci.cf-app.com/api/v1/pipelines/products/jobs/noisy-neighbor-nozzle-bump-submodule/badge
