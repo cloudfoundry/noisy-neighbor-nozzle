@@ -20,8 +20,14 @@ func NewReporter(cfg Config) *Reporter {
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 		Transport: &http.Transport{
+			Proxy:           http.ProxyFromEnvironment,
 			TLSClientConfig: cfg.TLSConfig,
 		},
+	}
+
+	ddClient := &http.Client{
+		Timeout:   5 * time.Second,
+		Transport: http.DefaultTransport,
 	}
 
 	a := auth.NewAuthenticator(cfg.ClientID, cfg.ClientSecret, cfg.UAAAddr,
@@ -44,7 +50,7 @@ func NewReporter(cfg Config) *Reporter {
 	r := datadog.NewReporter(cfg.DatadogAPIKey, c,
 		datadog.WithHost(cfg.ReporterHost),
 		datadog.WithInterval(cfg.ReportInterval),
-		datadog.WithHTTPClient(client),
+		datadog.WithHTTPClient(ddClient),
 	)
 
 	return &Reporter{
