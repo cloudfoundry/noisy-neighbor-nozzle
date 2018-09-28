@@ -14,11 +14,16 @@ type Input struct {
 	AccumulatorAppName string
 	NozzleInstances    uint
 	UAAAddr            string
+	CAPIAddr           string
 	LoggregatorAddr    string
 	ClientID           string
 	ClientSecret       string
 	SkipCertVerify     bool
 	Interactive        bool
+
+	DataDogForwarderName string
+	DataDogForwarder     bool
+	DataDogAPIKey        string
 }
 
 func Values() Input {

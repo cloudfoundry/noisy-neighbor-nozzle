@@ -45,6 +45,19 @@ func main() {
 	execute("set nozzle app GUID", "cf", "set-env", in.AccumulatorAppName, "NOZZLE_APP_GUID", string(appGUID))
 	execute("start nozzle", "cf", "start", in.NozzleAppName)
 	execute("start accumulator", "cf", "start", in.AccumulatorAppName)
+
+	if in.DataDogForwarder {
+		execute("push DataDogForwarder", "cf", "push", in.DataDogForwarderName, "--no-manifest", "--no-start", "--no-route", "-b", "binary_buildpack", "-c", "./datadog-reporter", "-u", "none")
+		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "UAA_ADDR", in.UAAAddr)
+		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "REPORTER_HOST", in.SystemDomain)
+		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "CAPI_ADDR", in.CAPIAddr)
+		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "ACCUMULATOR_ADDR", fmt.Sprintf("https://%s.%s", in.AccumulatorAppName, in.AppDomain))
+		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "CLIENT_ID", in.ClientID)
+		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "CLIENT_SECRET", in.ClientSecret)
+		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "DATADOG_API_KEY", in.DataDogAPIKey)
+		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "SKIP_CERT_VERIFY", strconv.FormatBool(in.SkipCertVerify))
+		execute("start DataDog forwarder", "cf", "start", in.DataDogForwarderName)
+	}
 }
 
 func execute(action string, args ...string) {
@@ -69,8 +82,9 @@ func randString(n int) string {
 
 func inputFromUser() deploy.Input {
 	resp := deploy.Input{
-		NozzleAppName:      "nn-nozzle",
-		AccumulatorAppName: "nn-accumulator",
+		NozzleAppName:        "nn-nozzle",
+		AccumulatorAppName:   "nn-accumulator",
+		DataDogForwarderName: "nn-datadog-forwarder",
 	}
 	qs := []*survey.Question{
 		{
@@ -142,8 +156,37 @@ func inputFromUser() deploy.Input {
 				Help:    "Yes if the Cloud Foundry is using self signed certs.",
 			},
 		},
+		{
+			Name: "DataDogForwarder",
+			Prompt: &survey.Confirm{
+				Message: "Deploy DataDog forwarder?",
+				Help:    "Yes if the results should be sent to DataDog.",
+			},
+		},
 	}
 	survey.Ask(qs, &resp)
+
+	if resp.DataDogForwarder {
+		qs = []*survey.Question{
+			{
+				Name: "CAPIAddr",
+				Prompt: &survey.Input{
+					Message: "CAPI Address?",
+					Default: fmt.Sprintf("https://api.%s", resp.SystemDomain),
+				},
+				Validate: survey.Required,
+			},
+			{
+				Name: "DataDogAPIKey",
+				Prompt: &survey.Password{
+					Message: "What is the DataDog API Key?",
+				},
+				Validate: survey.Required,
+			},
+		}
+
+		survey.Ask(qs, &resp)
+	}
 
 	return resp
 }

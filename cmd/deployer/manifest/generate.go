@@ -48,5 +48,7 @@ func toEnv(i deploy.Input) map[string]string {
 		"CLIENT_ID":            i.ClientID,
 		"CLIENT_SECRET":        i.ClientSecret,
 		"SKIP_CERT_VERIFY":     fmt.Sprint(i.SkipCertVerify),
+		"CAPI_ADDR":            i.CAPIAddr,
+		"DATADOG_API_KEY":      i.DataDogAPIKey,
 	}
 }
