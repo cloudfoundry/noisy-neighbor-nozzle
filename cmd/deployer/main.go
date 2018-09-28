@@ -28,6 +28,14 @@ func main() {
 
 	if in.Interactive {
 		in = inputFromUser()
+	} else {
+		if in.DataDogAPIKey != "" {
+			in.DataDogForwarder = true
+
+			if in.CAPIAddr == "" {
+				in.CAPIAddr = fmt.Sprintf("https://api.%s", in.SystemDomain)
+			}
+		}
 	}
 
 	manifestPath := manifest.Write(in)

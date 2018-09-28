@@ -31,6 +31,7 @@ func Values() Input {
 	appDomain := flag.String("app-domain", "", "Your app domain")
 	nozzleAppName := flag.String("nozzle-app-name", "nn-nozzle", "")
 	accAppName := flag.String("accumulator-app-name", "nn-accumulator", "")
+	dataDogAppName := flag.String("datadog-app-name", "nn-datadog-forwarder", "")
 	interactive := flag.Bool(
 		"interactive",
 		false,
@@ -66,21 +67,34 @@ func Values() Input {
 		false,
 		"Yes if the Cloud Foundry is using self signed certs.",
 	)
+	dataDogAPIKey := flag.String(
+		"datadog-api-key",
+		"",
+		"DataDog API key",
+	)
+	capiAddr := flag.String(
+		"capi-addr",
+		"",
+		"CAPI Address",
+	)
 
 	flag.Parse()
 
 	return Input{
-		Interactive:        *interactive,
-		SystemDomain:       *sysDomain,
-		AppDomain:          *appDomain,
-		NozzleAppName:      *nozzleAppName,
-		AccumulatorAppName: *accAppName,
-		NozzleInstances:    *instances,
-		UAAAddr:            *uaa,
-		LoggregatorAddr:    *loggrAddr,
-		ClientID:           *clientID,
-		ClientSecret:       *secret,
-		SkipCertVerify:     *skipCertVerify,
+		Interactive:          *interactive,
+		SystemDomain:         *sysDomain,
+		AppDomain:            *appDomain,
+		NozzleAppName:        *nozzleAppName,
+		AccumulatorAppName:   *accAppName,
+		DataDogForwarderName: *dataDogAppName,
+		NozzleInstances:      *instances,
+		UAAAddr:              *uaa,
+		LoggregatorAddr:      *loggrAddr,
+		ClientID:             *clientID,
+		ClientSecret:         *secret,
+		SkipCertVerify:       *skipCertVerify,
+		DataDogAPIKey:        *dataDogAPIKey,
+		CAPIAddr:             *capiAddr,
 	}
 }
 
