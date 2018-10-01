@@ -49,7 +49,7 @@ popd
 
 # Build Deployer binaries
 pushd $GOPATH/src/code.cloudfoundry.org/noisy-neighbor-nozzle/cmd/deployer
-    GOOS=linux go build -o $OUTPUT/deployer-darwin
+    GOOS=linux go build -o $OUTPUT/deployer-linux
     GOOS=darwin go build -o $OUTPUT/deployer-darwin
     GOOS=windows go build -o $OUTPUT/deployer-windows
 popd
