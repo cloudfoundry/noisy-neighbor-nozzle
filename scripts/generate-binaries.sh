@@ -22,7 +22,9 @@ if [ -z $VERSION_PATCH ]; then
 fi
 
 # Create output dir
-mkdir -p $OUTPUT
+if [ ! -d $OUTPUT ]; then
+    mkdir -p $OUTPUT
+fi
 
 # establish version/tag strings
 version="{\"Major\":$VERSION_MAJOR,\"Minor\":$VERSION_MINOR,\"Build\":$VERSION_PATCH}"
