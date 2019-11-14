@@ -79,7 +79,7 @@ instance.
 
 ## Debugging
 
-You can set IN_LOG_LEVEL environmental variable (default to info) to get more
+You can set MIN_LOG_LEVEL environmental variable (default to info) to get more
 verbose logging. See [lager logger](https://github.com/cloudfoundry/lager/blob/master/models.go)
 for more details.
 
@@ -101,7 +101,7 @@ for more details.
   timestamp to the by the configured `RATE_INTERVAL` (Default is 1 minute). If
   `true` timestamp will be truncated, otherwise it will not be modified. **DEPRECATED:
   This is no longer needed, as the code automatically calculate the correct rate interval
-  for any given timesamp**
+  for any given timestamp**
 
 #### Example
 
