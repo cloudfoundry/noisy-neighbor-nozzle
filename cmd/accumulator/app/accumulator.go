@@ -31,6 +31,7 @@ func New(cfg Config) *Accumulator {
 	log.Printf("initializing collector with nozzles: %+v", cfg.NozzleAddrs)
 	c := collector.New(cfg.NozzleAddrs, a, cfg.NozzleAppGUID, nil,
 		collector.WithHTTPClient(client),
+		collector.WithLagerLogger(cfg.MinLogLevel),
 	)
 	s := web.NewServer(cfg.Port, a.CheckToken, c, cfg.RateInterval,
 		web.WithLogWriter(cfg.LogWriter),

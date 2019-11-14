@@ -32,6 +32,9 @@ type Config struct {
 	NozzleAppGUID   string `env:"NOZZLE_APP_GUID"`
 	LogWriter       io.Writer
 
+        // Minimum log level for logger (debug, info, error, fatal)
+	MinLogLevel     string `env:"MIN_LOG_LEVEL"`
+
 	TLSConfig *tls.Config
 }
 
@@ -41,6 +44,7 @@ func LoadConfig() Config {
 		SkipCertVerify: false,
 		RateInterval:   time.Minute,
 		LogWriter:      os.Stdout,
+		MinLogLevel:    "info",
 	}
 
 	if err := envstruct.Load(&cfg); err != nil {

@@ -95,20 +95,24 @@ func (a *Authenticator) CheckToken(token, scope string) bool {
 		strings.NewReader(form.Encode()),
 	)
 	if err != nil {
-		log.Fatalf("failed to build request to UAA: %s", err)
+		log.Fatalf("failed to build request to UAA: %s, scope[%s]", err, scope)
 	}
 	req.SetBasicAuth(a.clientID, a.clientSecret)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	response, err := a.httpClient.Do(req)
 	if err != nil {
-		log.Printf("failed to check token: %s", err)
+		log.Printf("failed to check token: %s, scope[%s]", err, scope)
 		return false
 	}
 	defer response.Body.Close()
 
+	//log.Printf("UAA URL [%s]", a.uaaAddr+"/check_token")
+	//log.Printf("user [%s/%s]", a.clientID, a.clientSecret)
+	//log.Printf("token [%s]", token)
 	if response.StatusCode != http.StatusOK {
 		log.Printf("expected 200 status code from /check_token, got %d", response.StatusCode)
+		log.Printf("Required token scope[%s]", scope)
 		return false
 	}
 

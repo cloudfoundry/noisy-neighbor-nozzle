@@ -30,6 +30,9 @@ type Config struct {
 	VCapApplication string `env:"VCAP_APPLICATION"`
 	TLSConfig       *tls.Config
 
+        // Minimum log level for logger (debug, info, error, fatal)
+	MinLogLevel     string `env:"MIN_LOG_LEVEL"`
+
 	LogWriter io.Writer
 }
 
@@ -42,6 +45,7 @@ func LoadConfig() Config {
 		MaxRateBuckets:    60,
 		IncludeRouterLogs: false,
 		LogWriter:         os.Stdout,
+		MinLogLevel:       "info",
 	}
 
 	if err := envstruct.Load(&cfg); err != nil {

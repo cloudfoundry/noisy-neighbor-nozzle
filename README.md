@@ -77,6 +77,12 @@ nozzles as you have Loggregator Traffic Controllers.
 The accumulator and datadog-reporter should only be deployed with a single
 instance.
 
+## Debugging
+
+You can set IN_LOG_LEVEL environmental variable (default to info) to get more
+verbose logging. See [lager logger](https://github.com/cloudfoundry/lager/blob/master/models.go)
+for more details.
+
 ## Accumulator API
 
 ### **GET** `/rates/{timestamp}`
@@ -93,7 +99,9 @@ instance.
 
 - `truncate_timestamp` - Optional query parameter to truncate the given
   timestamp to the by the configured `RATE_INTERVAL` (Default is 1 minute). If
-  `true` timestamp will be truncated, otherwise it will not be modified.
+  `true` timestamp will be truncated, otherwise it will not be modified. **DEPRECATED:
+  This is no longer needed, as the code automatically calculate the correct rate interval
+  for any given timesamp**
 
 #### Example
 

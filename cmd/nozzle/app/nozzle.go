@@ -54,6 +54,7 @@ func New(cfg Config) *Nozzle {
 	a := store.NewAggregator(c,
 		store.WithPollingInterval(cfg.PollingInterval),
 		store.WithMaxRateBuckets(cfg.MaxRateBuckets),
+		store.WithLagerLogger(cfg.MinLogLevel),
 	)
 	s := web.NewServer(
 		cfg.Port,

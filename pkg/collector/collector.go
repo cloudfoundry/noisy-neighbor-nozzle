@@ -6,9 +6,13 @@ import (
 	"net/http"
 	"sort"
 	"time"
+	"os"
+	"log"
+	"strconv"
 
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/pkg/datadog"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/pkg/store"
+	"code.cloudfoundry.org/lager"
 )
 
 // Authenticator is used to refresh the authentication token.
@@ -30,6 +34,7 @@ type Collector struct {
 	reportLimit   int
 	nozzleAppGUID string
 	store         AppInfoStore
+	logger        lager.Logger
 }
 
 // New initializes and returns a new Collector.
@@ -52,8 +57,10 @@ func New(
 		reportLimit:   250,
 		nozzleAppGUID: nozzleAppGUID,
 		store:         store,
+		logger:	       lager.NewLogger("collector"),
 	}
 
+	c.logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.INFO))
 	for _, o := range opts {
 		o(c)
 	}
@@ -124,6 +131,7 @@ func (c *Collector) Rate(timestamp int64) (store.Rate, error) {
 	results := make(chan rateResult, len(c.nozzles))
 	defer close(results)
 	for i, n := range c.nozzles {
+		c.logger.Debug("Fetching from nozzle: " + strconv.Itoa(i))
 		go func(idx int, addr string) {
 			rate, err := c.fetchRate(timestamp, idx, addr, token)
 			results <- rateResult{
@@ -138,6 +146,7 @@ func (c *Collector) Rate(timestamp int64) (store.Rate, error) {
 		r := <-results
 
 		if r.err != nil {
+			c.logger.Debug("Nozzle " + strconv.Itoa(i) + " has error in results")
 			err = r.err
 		}
 
@@ -158,6 +167,7 @@ func (c *Collector) fetchRate(timestamp int64, index int, addr, token string) (s
 		nil,
 	)
 	if err != nil {
+		c.logger.Debug("Fetch rate create request error: " + err.Error())
 		return store.Rate{}, err
 	}
 
@@ -169,6 +179,7 @@ func (c *Collector) fetchRate(timestamp int64, index int, addr, token string) (s
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		c.logger.Debug("Fetch rate make request error: " + err.Error())
 		return store.Rate{}, err
 	}
 	defer resp.Body.Close()
@@ -180,6 +191,7 @@ func (c *Collector) fetchRate(timestamp int64, index int, addr, token string) (s
 	var rate store.Rate
 	err = json.NewDecoder(resp.Body).Decode(&rate)
 	if err != nil {
+		c.logger.Debug("Fetch rate decode error: " + err.Error())
 		return store.Rate{}, err
 	}
 
@@ -204,6 +216,20 @@ func WithReportLimit(n int) CollectorOption {
 func WithHTTPClient(client *http.Client) CollectorOption {
 	return func(c *Collector) {
 		c.httpClient = client
+	}
+}
+
+// Set logger minimum log level if configured
+func WithLagerLogger(s string) CollectorOption {
+	return func(c *Collector) {
+		l, err := lager.LogLevelFromString(s)
+		if err != nil {
+			log.Println(err.Error() + ": default to INFO")
+			l = lager.INFO
+		} else {
+			log.Println("Set logging level to: " + s)
+		}
+		c.logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.LogLevel(l)))
 	}
 }
 

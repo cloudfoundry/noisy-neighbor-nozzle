@@ -5,7 +5,11 @@ import (
 	"errors"
 	"sort"
 	"sync"
+	"log"
 	"time"
+	"os"
+
+	"code.cloudfoundry.org/lager"
 )
 
 var (
@@ -26,6 +30,8 @@ type Aggregator struct {
 	counter         RateCounter
 	pollingInterval time.Duration
 	maxRateBuckets  int
+
+	logger	lager.Logger
 }
 
 // NewAggregator will return an initialized Aggregator
@@ -34,8 +40,10 @@ func NewAggregator(c RateCounter, opts ...AggregatorOption) *Aggregator {
 		counter:         c,
 		pollingInterval: time.Minute,
 		maxRateBuckets:  10,
+		logger:	         lager.NewLogger("aggregator"),
 	}
 
+	a.logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.INFO))
 	for _, o := range opts {
 		o(a)
 	}
@@ -94,10 +102,13 @@ func (a *Aggregator) Rate(timestamp int64) (Rate, error) {
 	var rate Rate
 	a.data.Next().Do(func(value interface{}) {
 		if value == nil {
+			a.logger.Debug("No Rate value available for bucket")
 			return
 		}
+                a.logger.Info("Time stamp", lager.Data{"Requested TS": timestamp, "Bucket TS": value.(Rate).Timestamp})
 
-		if value.(Rate).Timestamp == timestamp {
+		intervalCeil := value.(Rate).Timestamp + int64(a.pollingInterval.Seconds())
+		if value.(Rate).Timestamp <= timestamp && timestamp < intervalCeil {
 			rate = value.(Rate)
 			err = nil
 		}
@@ -126,5 +137,19 @@ func WithPollingInterval(d time.Duration) AggregatorOption {
 func WithMaxRateBuckets(n int) AggregatorOption {
 	return func(a *Aggregator) {
 		a.maxRateBuckets = n
+	}
+}
+
+// Set logger minimum log level if configured
+func WithLagerLogger(s string) AggregatorOption {
+	return func(a *Aggregator) {
+		l, err := lager.LogLevelFromString(s)
+		if err != nil {
+			log.Println(err.Error() + ": default to INFO")
+			l = lager.INFO
+		} else {
+			log.Println("Set logging level to: " + s)
+		}
+		a.logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.LogLevel(l)))
 	}
 }
