@@ -1,13 +1,11 @@
 package app
 
 import (
-	"log"
-	"net/http"
-	"time"
-
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/pkg/auth"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/pkg/collector"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/pkg/datadog"
+	"log"
+	"net/http"
 )
 
 // Reporter is the constructor for the datadog reporter application.
@@ -18,7 +16,7 @@ type Reporter struct {
 // NewReporter configures and returns a new Reporter
 func NewReporter(cfg Config) *Reporter {
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: cfg.CAPIRequestTimeout,
 		Transport: &http.Transport{
 			Proxy:           http.ProxyFromEnvironment,
 			TLSClientConfig: cfg.TLSConfig,
@@ -26,7 +24,7 @@ func NewReporter(cfg Config) *Reporter {
 	}
 
 	ddClient := &http.Client{
-		Timeout:   5 * time.Second,
+		Timeout:   cfg.DatadogRequestTimeout,
 		Transport: http.DefaultTransport,
 	}
 

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/cmd/deployer/deploy"
 	"code.cloudfoundry.org/noisy-neighbor-nozzle/cmd/deployer/manifest"
@@ -63,6 +64,8 @@ func main() {
 		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "CLIENT_ID", in.ClientID)
 		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "CLIENT_SECRET", in.ClientSecret)
 		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "DATADOG_API_KEY", in.DataDogAPIKey)
+		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "DATADOG_REQUEST_TIMEOUT", in.DatadogRequestTimeout)
+		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "CAPI_REQUEST_TIMEOUT", in.CAPIRequestTimeout)
 		execute("set accumulator app name", "cf", "set-env", in.DataDogForwarderName, "SKIP_CERT_VERIFY", strconv.FormatBool(in.SkipCertVerify))
 		execute("start DataDog forwarder", "cf", "start", in.DataDogForwarderName)
 	}
@@ -191,6 +194,20 @@ func inputFromUser() deploy.Input {
 				},
 				Validate: survey.Required,
 			},
+			{
+				Name: "CAPIRequestTimeout",
+				Prompt: &survey.Input{
+					Message: "Request timeout when communicating with CAPI?",
+				},
+				Validate: timeDuration,
+			},
+			{
+				Name: "DatadogRequestTimeout",
+				Prompt: &survey.Input{
+					Message: "Request timeout when communicating with Datadog?",
+				},
+				Validate: timeDuration,
+			},
 		}
 
 		survey.Ask(qs, &resp)
@@ -207,4 +224,14 @@ func unsignedInteger(val interface{}) error {
 	_, err := strconv.ParseUint(vs, 10, 64)
 	return err
 
+}
+
+func timeDuration(val interface{}) error {
+	vs, ok := val.(string)
+	if !ok {
+		return errors.New("Couldn't decode type")
+	}
+
+	_, err := time.ParseDuration(vs)
+	return err
 }

@@ -21,6 +21,9 @@ type Input struct {
 	SkipCertVerify     bool
 	Interactive        bool
 
+	DatadogRequestTimeout string
+	CAPIRequestTimeout    string
+
 	DataDogForwarderName string
 	DataDogForwarder     bool
 	DataDogAPIKey        string
@@ -77,24 +80,36 @@ func Values() Input {
 		"",
 		"CAPI Address",
 	)
+	dataDogRequestTimeout := flag.String(
+		"datadog-request-timeout",
+		"5s",
+		"Request timeout when communicating with DataDog",
+	)
+	capiRequestTimeout := flag.String(
+		"capi-request-timeout",
+		"5s",
+		"Request timeout when communicating with CAPI",
+	)
 
 	flag.Parse()
 
 	return Input{
-		Interactive:          *interactive,
-		SystemDomain:         *sysDomain,
-		AppDomain:            *appDomain,
-		NozzleAppName:        *nozzleAppName,
-		AccumulatorAppName:   *accAppName,
-		DataDogForwarderName: *dataDogAppName,
-		NozzleInstances:      *instances,
-		UAAAddr:              *uaa,
-		LoggregatorAddr:      *loggrAddr,
-		ClientID:             *clientID,
-		ClientSecret:         *secret,
-		SkipCertVerify:       *skipCertVerify,
-		DataDogAPIKey:        *dataDogAPIKey,
-		CAPIAddr:             *capiAddr,
+		Interactive:           *interactive,
+		SystemDomain:          *sysDomain,
+		AppDomain:             *appDomain,
+		NozzleAppName:         *nozzleAppName,
+		AccumulatorAppName:    *accAppName,
+		DataDogForwarderName:  *dataDogAppName,
+		NozzleInstances:       *instances,
+		UAAAddr:               *uaa,
+		LoggregatorAddr:       *loggrAddr,
+		ClientID:              *clientID,
+		ClientSecret:          *secret,
+		SkipCertVerify:        *skipCertVerify,
+		DataDogAPIKey:         *dataDogAPIKey,
+		CAPIAddr:              *capiAddr,
+		DatadogRequestTimeout: *dataDogRequestTimeout,
+		CAPIRequestTimeout:    *capiRequestTimeout,
 	}
 }
 
@@ -130,6 +145,7 @@ func Validate(f Input) error {
 	if f.ClientSecret == "" {
 		return errors.New("Client Secret is required, but not set")
 	}
+
 	return nil
 
 }

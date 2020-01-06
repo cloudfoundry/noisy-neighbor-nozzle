@@ -21,6 +21,9 @@ type Config struct {
 	ReporterHost    string        `env:"REPORTER_HOST"`
 	ReportLimit     int           `env:"REPORT_LIMIT"`
 
+	CAPIRequestTimeout    time.Duration `env:"CAPI_REQUEST_TIMEOUT"`
+	DatadogRequestTimeout time.Duration `env:"DATADOG_REQUEST_TIMEOUT"`
+
 	AppInfoCacheTTL time.Duration `env:"APP_INFO_CACHE_TTL"`
 
 	TLSConfig *tls.Config
@@ -29,10 +32,12 @@ type Config struct {
 // LoadConfig loads the configuration settings from the current environment.
 func LoadConfig() Config {
 	cfg := Config{
-		ReportInterval:  time.Minute,
-		ReportLimit:     50,
-		SkipCertVerify:  false,
-		AppInfoCacheTTL: 150 * time.Second,
+		ReportInterval:        time.Minute,
+		ReportLimit:           50,
+		SkipCertVerify:        false,
+		AppInfoCacheTTL:       150 * time.Second,
+		CAPIRequestTimeout:    5 * time.Second,
+		DatadogRequestTimeout: 5 * time.Second,
 	}
 
 	if err := envstruct.Load(&cfg); err != nil {
